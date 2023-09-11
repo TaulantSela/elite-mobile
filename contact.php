@@ -38,7 +38,7 @@
                 <h4>Also you can call us : <b>+389 71 919 333</b></h4>
                 <?php
             } else {
-                $to_email = "ms26214@seeu.edu.mk";
+                $to_email = "taulant1995@gmail.com";
                 $from_email = $_POST["from_email"];
                 $subject = $_POST["subject"];
                 $body = $_POST["content"];
