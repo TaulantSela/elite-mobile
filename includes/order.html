@@ -1,0 +1,22 @@
+<!-- javascript (JQuery) per order -->
+<script type="text/javascript">
+
+    var categoryid = "<?php echo $_GET['categoryid'] ?>";
+    function changeURL(e)
+    {
+        $('#orderSelect').on('change', function()
+        {
+            var param = $(e).val();
+            console.log(param,categoryid )
+            var url = 'http://localhost/phpproject/products.php?categoryid='+categoryid+'&order='+param;
+            window.location = url;
+        })
+    }
+    $( "#orderSelect" ).change(function()
+    {
+        var param = $( "#orderSelect" ).val();
+        console.log(param,categoryid )
+        var url = 'http://localhost/phpproject/products.php?categoryid='+categoryid+'&order='+param;
+        window.location = url;
+    });
+</script>
