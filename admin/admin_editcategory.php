@@ -1,16 +1,68 @@
-<!DOCTYPE html>
 <?php
-session_start();
-if (!isset($_SESSION["username"])) {
-  echo "<script>window.open('LoginForm.php','_self')</script>";
+declare(strict_types=1);
+
+require_once __DIR__ . '/admin_init.php';
+
+$categoryId = isset($_GET['edit_cat']) ? (int) $_GET['edit_cat'] : 0;
+$categoryTitle = '';
+$error = '';
+
+if ($categoryId <= 0) {
+    header('Location: admin_categories.php');
+    exit;
 }
-else {
-include("../includes/db_connection.php");
+
+$selectStatement = mysqli_prepare($conn, 'SELECT categoryname FROM category WHERE categoryid = ?');
+
+if ($selectStatement && mysqli_stmt_bind_param($selectStatement, 'i', $categoryId) && mysqli_stmt_execute($selectStatement)) {
+    $result = mysqli_stmt_get_result($selectStatement);
+    $row = $result ? mysqli_fetch_assoc($result) : null;
+
+    if ($row) {
+        $categoryTitle = $row['categoryname'];
+    } else {
+        mysqli_stmt_close($selectStatement);
+        header('Location: admin_categories.php');
+        exit;
+    }
+
+    mysqli_free_result($result);
+    mysqli_stmt_close($selectStatement);
+} else {
+    if ($selectStatement) {
+        mysqli_stmt_close($selectStatement);
+    }
+    header('Location: admin_categories.php?error=not_found');
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cat'])) {
+    $newCategoryTitle = trim($_POST['new_cat'] ?? '');
+
+    if ($newCategoryTitle === '') {
+        $error = 'Category name cannot be empty.';
+    } else {
+        $updateStatement = mysqli_prepare($conn, 'UPDATE category SET categoryname = ? WHERE categoryid = ?');
+
+        if ($updateStatement && mysqli_stmt_bind_param($updateStatement, 'si', $newCategoryTitle, $categoryId) && mysqli_stmt_execute($updateStatement)) {
+            mysqli_stmt_close($updateStatement);
+            header('Location: admin_categories.php');
+            exit;
+        }
+
+        if ($updateStatement) {
+            mysqli_stmt_close($updateStatement);
+        }
+
+        $error = 'Unable to update category. Please try again.';
+    }
+}
 ?>
+<!DOCTYPE html>
 <html lang="en">
-<?php include ("../includes/admin_head.html")?>
+<?php require_once __DIR__ . '/../includes/admin_head.html'; ?>
 <body class="fixed-nav sticky-footer bg-dark" id="page-top">
-<?php include("../includes/admin_header.html")?>
+<?php require_once __DIR__ . '/../includes/admin_header.html'; ?>
   <div class="content-wrapper">
     <div class="container-fluid">
       <!-- Breadcrumbs-->
@@ -18,39 +70,17 @@ include("../includes/db_connection.php");
         <li class="breadcrumb-item">Edit</li>
         <li class="breadcrumb-item active">Category</li>
       </ol>
-  <?php
-include("../includes/db_connection.php");
-if(isset($_GET['edit_cat'])){
-	$cat_id = $_GET['edit_cat'];
-	$get_cat = "select * from category where categoryid='$cat_id'";
-	$run_cat = mysqli_query($conn, $get_cat);
-	$row_cat = mysqli_fetch_array($run_cat);
-	$cat_id = $row_cat['categoryid'];
-	$cat_title = $row_cat['categoryname'];
-}
-?>
-<form action="" method="post" style="padding:80px;">
+  <form action="" method="post" style="padding:80px;" autocomplete="off">
 <b>Update Category:</b>
-<input type="text" name="new_cat" value="<?php echo $cat_title;?>"/>
+<input type="text" name="new_cat" value="<?php echo htmlspecialchars($categoryTitle, ENT_QUOTES, 'UTF-8'); ?>" required />
 <input type="submit" name="update_cat" value="Update Category" />
+<?php if ($error !== ''): ?>
+    <p class="text-danger" style="margin-top: 15px;"><?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?></p>
+<?php endif; ?>
 </form>
-<?php
-	if(isset($_POST['update_cat'])) {
-  	    $update_id = $cat_id;
-  	    $new_cat = $_POST['new_cat'];
-  	    $update_cat = "update category set categoryname='$new_cat' where categoryid='$update_id'";
-  	    $run_cat = mysqli_query($conn, $update_cat);
-  	    if($run_cat)
-            {
-    	        echo "<script>alert(' Category has been updated!')</script>";
-    	        echo "<script>window.open('admin_categories.php','_self')</script>";
-  	        }
-	}
-?>
     </div>
-      <?php include ("../includes/admin_footer.html")?>
-      <?php include ("../includes/admin_scripts.html")?>
+      <?php require_once __DIR__ . '/../includes/admin_footer.html'; ?>
+      <?php require_once __DIR__ . '/../includes/admin_scripts.html'; ?>
   </div>
 </body>
 </html>
-<?php } ?>

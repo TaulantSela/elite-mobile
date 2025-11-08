@@ -1,46 +1,55 @@
-<!DOCTYPE html>
 <?php
-session_start();
-if (!isset($_SESSION["username"])) {
-  echo "<script>window.open('LoginForm.php','_self')</script>";
+declare(strict_types=1);
+
+require_once __DIR__ . '/admin_init.php';
+
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_cat'])) {
+    $newCategory = trim($_POST['new_cat'] ?? '');
+
+    if ($newCategory === '') {
+        $error = 'Category name is required.';
+    } else {
+        $statement = mysqli_prepare($conn, 'INSERT INTO category (categoryname) VALUES (?)');
+
+        if ($statement && mysqli_stmt_bind_param($statement, 's', $newCategory) && mysqli_stmt_execute($statement)) {
+            mysqli_stmt_close($statement);
+            header('Location: admin_categories.php');
+            exit;
+        }
+
+        if ($statement) {
+            mysqli_stmt_close($statement);
+        }
+
+        $error = 'Unable to insert category. Please try again.';
+    }
 }
-else {
-include("../includes/db_connection.php");
 ?>
+<!DOCTYPE html>
 <html lang="en">
-<?php include ("../includes/admin_head.html")?>
+<?php require_once __DIR__ . '/../includes/admin_head.html'; ?>
 <body class="fixed-nav sticky-footer bg-dark" id="page-top">
-<?php include("../includes/admin_header.html")?>
+<?php require_once __DIR__ . '/../includes/admin_header.html'; ?>
   <div class="content-wrapper">
     <div class="container-fluid">
       <!-- Breadcrumbs-->
       <ol class="breadcrumb">
         <li class="breadcrumb-item">Insert</li>
-        <li class="breadcrumb-item active">ADD NEW CATEGORY</li>
+        <li class="breadcrumb-item active">Add New Category</li>
       </ol>
-  <form action="" method="post" style="padding:80px;">
+  <form action="" method="post" style="padding:80px;" autocomplete="off">
 <b>Insert New Category:</b>
-<input type="text" name="new_cat" required/>
+<input type="text" name="new_cat" required />
 <input type="submit" name="add_cat" value="Add Category" />
+<?php if ($error !== ''): ?>
+    <p class="text-danger" style="margin-top: 15px;"><?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?></p>
+<?php endif; ?>
 </form>
-<?php
-include("../includes/db_connection.php");
-	if(isset($_POST['add_cat']))
-  {
-  	$new_cat = $_POST['new_cat'];
-  	$insert_cat = "insert into category (categoryname) values ('$new_cat')";
-  	$run_cat = mysqli_query($conn, $insert_cat);
-  	if($run_cat)
-      {
-	     echo "<script>alert('New Category has been inserted!')</script>";
-	     echo "<script>window.open('admin_categories.php','_self')</script>";
-	    }
-  }
-?>
     </div>
-      <?php include ("../includes/admin_footer.html")?>
-      <?php include ("../includes/admin_scripts.html")?>
+      <?php require_once __DIR__ . '/../includes/admin_footer.html'; ?>
+      <?php require_once __DIR__ . '/../includes/admin_scripts.html'; ?>
   </div>
 </body>
 </html>
-<?php } ?>

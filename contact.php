@@ -1,56 +1,65 @@
-<?php include("includes/db_connection.php");?>
+<?php
+declare(strict_types=1);
+
+$message = '';
+$messageType = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = trim($_POST['userName'] ?? '');
+    $fromEmail = filter_var(trim($_POST['from_email'] ?? ''), FILTER_VALIDATE_EMAIL);
+    $subject = trim($_POST['subject'] ?? '');
+    $body = trim($_POST['content'] ?? '');
+
+    if ($name === '' || $fromEmail === false || $subject === '' || $body === '') {
+        $message = 'Please complete all required fields with valid information.';
+        $messageType = 'error';
+    } else {
+        $toEmail = 'taulant1995@gmail.com';
+        $headers = sprintf('From: %s <%s>', $name, $fromEmail);
+
+        if (mail($toEmail, $subject, $body, $headers)) {
+            $message = 'Email successfully sent!';
+            $messageType = 'success';
+        } else {
+            $message = 'Email sending failed. Please try again later.';
+            $messageType = 'error';
+        }
+    }
+}
+
+$formAction = htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, 'UTF-8');
+?>
 <!DOCTYPE html>
 <html lang="en">
-<?php include("includes/head.html") ?>
+<?php require_once __DIR__ . '/includes/head.html'; ?>
 <body>
-<?php include("includes/header.html") ?>
+<?php require_once __DIR__ . '/includes/header.html'; ?>
 <div class="container-fluid text-center">
-    <?php include("includes/leftnav.html") ?>
+    <?php require_once __DIR__ . '/includes/leftnav.html'; ?>
     <div class="col-sm-8 text-left">
         <div class="form-container">
             <h4>For online contact, you can send us an email</h4>
-            <?php if (!isset($_POST["submit"])) { ?>
-                <form name="frmContact" id="frmContact" method="post" action="<?php echo $_SERVER["PHP_SELF"];?>" enctype="multipart/form-data" onsubmit="return validateContactForm()">
-                    <div class="input-row">
-                        <label style="padding-top: 20px;">Name</label> <span id="userName-info" class="info"></span><br /> <input typpe="text" class="input-field" name="userName" id="userName" />
-                    </div>
-                    <div class="input-row">
-                        <label>Email</label> <span id="userEmail-info" class="info"></span><br /> <input type="text" class="input-field" name="from_email" id="userEmail" />
-                    </div>
-                    <div class="input-row">
-                        <label>Subject</label> <span id="subject-info" class="info"></span><br /> <input type="text" class="input-field" name="subject" id="subject" />
-                    </div>
-                    <div class="input-row">
-                        <label>Message</label> <span id="userMessage-info" class="info"></span><br /> <textarea name="content" id="content" class="input-field" cols="60" rows="6"></textarea>
-                    </div>
-                    <div>
-                        <input type="submit" name="submit" class="btn-submit" value="Send" />
-                        <div id="statusMessage">
-                            <?php
-                            if (!empty($message))
-                            {
-                                echo "<p class='<?php echo($type); ?>Message'><?php echo($message); ?></p>";
-                            }
-                            ?>
-                        </div>
-                    </div>
-                </form>
-                <h4>Also you can call us : <b>+389 71 919 333</b></h4>
-                <?php
-            } else {
-                $to_email = "taulant1995@gmail.com";
-                $from_email = $_POST["from_email"];
-                $subject = $_POST["subject"];
-                $body = $_POST["content"];
-
-                if (mail($to_email, $subject, $body)) {
-                    echo("Email successfully sent!");
-                }
-                else {
-                    echo("Email sending failed!");
-                }
-            }
-            ?>
+            <form name="frmContact" id="frmContact" method="post" action="<?php echo $formAction; ?>" enctype="multipart/form-data" onsubmit="return validateContactForm()">
+                <div class="input-row">
+                    <label style="padding-top: 20px;">Name</label> <span id="userName-info" class="info"></span><br /> <input type="text" class="input-field" name="userName" id="userName" value="<?php echo htmlspecialchars($_POST['userName'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" />
+                </div>
+                <div class="input-row">
+                    <label>Email</label> <span id="userEmail-info" class="info"></span><br /> <input type="email" class="input-field" name="from_email" id="userEmail" value="<?php echo htmlspecialchars($_POST['from_email'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" />
+                </div>
+                <div class="input-row">
+                    <label>Subject</label> <span id="subject-info" class="info"></span><br /> <input type="text" class="input-field" name="subject" id="subject" value="<?php echo htmlspecialchars($_POST['subject'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" />
+                </div>
+                <div class="input-row">
+                    <label>Message</label> <span id="userMessage-info" class="info"></span><br /> <textarea name="content" id="content" class="input-field" cols="60" rows="6"><?php echo htmlspecialchars($_POST['content'] ?? '', ENT_QUOTES, 'UTF-8'); ?></textarea>
+                </div>
+                <div>
+                    <input type="submit" name="submit" class="btn-submit" value="Send" />
+                    <?php if ($message !== ''): ?>
+                        <div id="statusMessage" class="<?php echo $messageType; ?>-message"><?php echo htmlspecialchars($message, ENT_QUOTES, 'UTF-8'); ?></div>
+                    <?php endif; ?>
+                </div>
+            </form>
+            <h4>Also you can call us : <b>+389 71 919 333</b></h4>
             <div>
 
             </div>
@@ -98,8 +107,8 @@
             return valid;
         }
     </script>
-    <?php include("includes/rightnav.html") ?>
+    <?php require_once __DIR__ . '/includes/rightnav.html'; ?>
 </div>
-<?php include("includes/footer.html") ?>
+<?php require_once __DIR__ . '/includes/footer.html'; ?>
 </body>
 </html>

@@ -1,22 +1,22 @@
 <!-- javascript (JQuery) per order -->
+<?php $categoryId = isset($_GET['categoryid']) ? (int) $_GET['categoryid'] : 0; ?>
 <script type="text/javascript">
+    (function ($) {
+        var categoryId = <?php echo json_encode($categoryId, JSON_THROW_ON_ERROR); ?>;
 
-    var categoryid = "<?php echo $_GET['categoryid'] ?>";
-    function changeURL(e)
-    {
-        $('#orderSelect').on('change', function()
-        {
-            var param = $(e).val();
-            console.log(param,categoryid )
-            var url = 'http://localhost/phpproject/products.php?categoryid='+categoryid+'&order='+param;
-            window.location = url;
-        })
-    }
-    $( "#orderSelect" ).change(function()
-    {
-        var param = $( "#orderSelect" ).val();
-        console.log(param,categoryid )
-        var url = 'http://localhost/phpproject/products.php?categoryid='+categoryid+'&order='+param;
-        window.location = url;
-    });
+        if (!categoryId) {
+            return;
+        }
+
+        $(document).on('change', '#orderSelect', function () {
+            var order = $(this).val();
+            var url = 'products.php?categoryid=' + categoryId;
+
+            if (order) {
+                url += '&order=' + encodeURIComponent(order);
+            }
+
+            window.location.href = url;
+        });
+    })(jQuery);
 </script>
