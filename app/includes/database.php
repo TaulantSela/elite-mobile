@@ -14,7 +14,10 @@ function getDbConnection(): mysqli
         return $connection;
     }
 
-    $connection = mysqli_connect(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
+    $port = defined('DB_PORT') ? (int) DB_PORT : 3306;
+    $socket = getenv('DB_SOCKET') ?: null;
+
+    $connection = mysqli_connect(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, $port, $socket ?: null);
 
     if (!$connection) {
         throw new RuntimeException('Could not connect to MySQL: ' . mysqli_connect_error());
