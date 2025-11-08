@@ -4,18 +4,18 @@
       "runtime": "vercel-php@0.7.4"
     }
   },
-  "rewrites": [
+  "routes": [
     {
-      "source": "/(css|js|img|vendor|styles|bootstrap-3\\.3\\.7-dist|screenshot)/(.*)",
-      "destination": "/$1/$2"
+      "src": "/(css|js|img|vendor|styles|bootstrap-3\\.3\\.7-dist|screenshot)/(.*)",
+      "dest": "/$1/$2"
     },
     {
-      "source": "/favicon.ico",
-      "destination": "/favicon.ico"
+      "src": "/favicon.ico",
+      "dest": "/favicon.ico"
     },
     {
-      "source": "/(.*)",
-      "destination": "/api/index.php"
+      "src": "/(.*)",
+      "dest": "/api/index.php"
     }
   ]
 }
