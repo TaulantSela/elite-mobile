@@ -3,6 +3,145 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/database.php';
 
+function formatPrice(int|float $amount, string $suffix = ' ден'): string
+{
+    return number_format((float) $amount, 0, '.', ' ') . $suffix;
+}
+
+function fetchAllCategories(): array
+{
+    $connection = getDbConnection();
+    $query = 'SELECT categoryid, categoryname FROM category ORDER BY categoryname ASC';
+    $result = mysqli_query($connection, $query);
+
+    if (!$result) {
+        return [];
+    }
+
+    $categories = [];
+
+    while ($row = mysqli_fetch_assoc($result)) {
+        $categories[] = [
+            'id' => (int) $row['categoryid'],
+            'name' => $row['categoryname'],
+        ];
+    }
+
+    mysqli_free_result($result);
+
+    return $categories;
+}
+
+function fetchFeaturedProducts(int $limit = 8): array
+{
+    $connection = getDbConnection();
+    $query = 'SELECT productid, productname, price, image FROM product ORDER BY price DESC LIMIT ?';
+    $statement = mysqli_prepare($connection, $query);
+
+    if (!$statement) {
+        return [];
+    }
+
+    mysqli_stmt_bind_param($statement, 'i', $limit);
+    mysqli_stmt_execute($statement);
+    $result = mysqli_stmt_get_result($statement);
+
+    if (!$result) {
+        mysqli_stmt_close($statement);
+        return [];
+    }
+
+    $products = [];
+
+    while ($row = mysqli_fetch_assoc($result)) {
+        $products[] = [
+            'id' => (int) $row['productid'],
+            'name' => $row['productname'],
+            'price' => (int) $row['price'],
+            'image' => $row['image'],
+        ];
+    }
+
+    mysqli_free_result($result);
+    mysqli_stmt_close($statement);
+
+    return $products;
+}
+
+function fetchLatestProducts(int $limit = 8): array
+{
+    $connection = getDbConnection();
+    $query = 'SELECT productid, productname, price, image FROM product ORDER BY productid DESC LIMIT ?';
+    $statement = mysqli_prepare($connection, $query);
+
+    if (!$statement) {
+        return [];
+    }
+
+    mysqli_stmt_bind_param($statement, 'i', $limit);
+    mysqli_stmt_execute($statement);
+    $result = mysqli_stmt_get_result($statement);
+
+    if (!$result) {
+        mysqli_stmt_close($statement);
+        return [];
+    }
+
+    $products = [];
+
+    while ($row = mysqli_fetch_assoc($result)) {
+        $products[] = [
+            'id' => (int) $row['productid'],
+            'name' => $row['productname'],
+            'price' => (int) $row['price'],
+            'image' => $row['image'],
+        ];
+    }
+
+    mysqli_free_result($result);
+    mysqli_stmt_close($statement);
+
+    return $products;
+}
+
+function fetchHighlightedServices(int $limit = 3): array
+{
+    $connection = getDbConnection();
+    $query = 'SELECT id, name, short_description, price, duration, icon FROM services ORDER BY is_featured DESC, price DESC LIMIT ?';
+    $statement = mysqli_prepare($connection, $query);
+
+    if (!$statement) {
+        return [];
+    }
+
+    mysqli_stmt_bind_param($statement, 'i', $limit);
+    mysqli_stmt_execute($statement);
+    $result = mysqli_stmt_get_result($statement);
+
+    if (!$result) {
+        mysqli_stmt_close($statement);
+        return [];
+    }
+
+    $services = [];
+
+    while ($row = mysqli_fetch_assoc($result)) {
+        $services[] = [
+            'id' => (int) $row['id'],
+            'name' => $row['name'],
+            'short_description' => $row['short_description'],
+            'price' => (int) $row['price'],
+            'duration' => $row['duration'],
+            'icon' => $row['icon'] ?? 'tool',
+        ];
+    }
+
+    mysqli_free_result($result);
+    mysqli_stmt_close($statement);
+
+    return $services;
+}
+
 function showCategory(): void
 {
     $connection = getDbConnection();

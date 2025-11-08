@@ -2,15 +2,16 @@
 <?php
 session_start();
 if (!isset($_SESSION["username"])) {
-  echo "<script>window.open('LoginForm.php','_self')</script>";
+  header('Location: ../LoginForm.php');
+  exit;
 }
 else {
     include("../includes/db_connection.php");
 ?>
 <html lang="en">
-<?php include ("../includes/admin_head.html")?>
+<?php include("../includes/admin/head.html")?>
 <body class="fixed-nav sticky-footer bg-dark" id="page-top">
-<?php include("../includes/admin_header.html")?>
+<?php include("../includes/admin/header.html")?>
   <div class="content-wrapper">
     <div class="container-fluid">
       <!-- Breadcrumbs-->
@@ -80,8 +81,8 @@ else {
 	}
 ?>
     </div>
-      <?php include ("../includes/admin_footer.html")?>
-      <?php include ("../includes/admin_scripts.html")?>
+      <?php include ("../includes/admin/footer.html")?>
+      <?php include ("../includes/admin/scripts.html")?>
   </div>
 </body>
 </html>

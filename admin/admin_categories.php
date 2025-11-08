@@ -8,10 +8,9 @@ $categoryResult = mysqli_query($conn, $categoryQuery);
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<?php require_once __DIR__ . '/../includes/admin_head.html'; ?>
-
+<?php require_once __DIR__ . '/../includes/admin/head.html'; ?>
 <body class="fixed-nav sticky-footer bg-dark" id="page-top">
-<?php require_once __DIR__ . '/../includes/admin_header.html'; ?>
+<?php require_once __DIR__ . '/../includes/admin/header.html'; ?>
   <div class="content-wrapper">
     <div class="container-fluid">
       <!-- Breadcrumbs-->
@@ -62,8 +61,8 @@ $categoryResult = mysqli_query($conn, $categoryQuery);
       </div>
         </div>
     </div>
-      <?php require_once __DIR__ . '/../includes/admin_footer.html'; ?>
-      <?php require_once __DIR__ . '/../includes/admin_scripts.html'; ?>
+      <?php require_once __DIR__ . '/../includes/admin/footer.html'; ?>
+      <?php require_once __DIR__ . '/../includes/admin/scripts.html'; ?>
   </div>
 </body>
 </html>
