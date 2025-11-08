@@ -1,3 +1,55 @@
-<footer class="container-fluid text-center">
-  <p>&copy; ELITEMobile 2019</p>
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <h3 class="footer-title">Elite Mobile</h3>
+      <p class="footer-text">Flagship devices, smart accessories, and certified repair services in one curated
+        destination.</p>
+      <div class="footer-contact">
+        <a href="tel:+38970252525"><i class="fa-solid fa-phone"></i> 070 25 25 25</a>
+        <a href="mailto:hello@elitemobile.mk"><i class="fa-solid fa-envelope"></i> hello@elitemobile.mk</a>
+        <span><i class="fa-solid fa-location-dot"></i> Skopje City Mall, Level 1</span>
+      </div>
+    </div>
+    <div>
+      <h4 class="footer-heading">Browse</h4>
+      <ul class="footer-links">
+        <li><a href="products.php">All Phones</a></li>
+        <li><a href="products.php?categoryid=1">Apple</a></li>
+        <li><a href="products.php?categoryid=2">Samsung</a></li>
+        <li><a href="products.php?categoryid=3">Google</a></li>
+        <li><a href="service.php">Repairs &amp; Services</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="footer-heading">Support</h4>
+      <ul class="footer-links">
+        <li><a href="contact.php">Contact &amp; Store Hours</a></li>
+        <li><a href="#">Delivery &amp; Pickup</a></li>
+        <li><a href="#">Warranty Policy</a></li>
+        <li><a href="#">Terms &amp; Privacy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="footer-heading">Stay in the loop</h4>
+      <p class="footer-text">Join the newsletter for product drops, preorder alerts, and exclusive bundles.</p>
+      <form class="footer-newsletter" action="#" method="post">
+        <label class="sr-only" for="newsletter-email">Email</label>
+        <input id="newsletter-email" type="email" name="email" placeholder="you@example.com" required>
+        <button type="submit">Subscribe</button>
+      </form>
+      <div class="footer-social">
+        <a href="#"><i class="fa-brands fa-facebook"></i></a>
+        <a href="#"><i class="fa-brands fa-instagram"></i></a>
+        <a href="#"><i class="fa-brands fa-youtube"></i></a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="container footer-bottom-inner">
+      <span>&copy;
+        <?php echo date('Y'); ?> Elite Mobile. Crafted for next-gen connectivity.
+      </span>
+      <span>Developed with ❤️ in Skopje.</span>
+    </div>
+  </div>
 </footer>

@@ -81,6 +81,36 @@ INSERT INTO `product` (`productid`, `productname`, `categoryid`, `price`, `image
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `services`
+--
+
+CREATE TABLE `services` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `slug` varchar(120) NOT NULL,
+  `short_description` varchar(255) NOT NULL,
+  `description` text NOT NULL,
+  `price` int(11) NOT NULL DEFAULT '0',
+  `duration` varchar(50) DEFAULT NULL,
+  `is_featured` tinyint(1) NOT NULL DEFAULT '0',
+  `icon` varchar(60) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `services`
+--
+
+INSERT INTO `services` (`id`, `name`, `slug`, `short_description`, `description`, `price`, `duration`, `is_featured`, `icon`, `created_at`) VALUES
+(1, 'Screen Replacement', 'screen-replacement', 'Premium OLED screen swaps with warranty.', 'Restore your device with OEM-grade displays. Includes diagnostics, calibration, and a 12-month warranty for supported models.', 7990, 'Same day', 1, 'display', CURRENT_TIMESTAMP),
+(2, 'Battery Replacement', 'battery-replacement', 'High-capacity battery swaps for all major brands.', 'Certified technicians replace degraded batteries, run performance tests, and recycle old cells responsibly.', 4490, '2 hours', 1, 'battery', CURRENT_TIMESTAMP),
+(3, 'Water Damage Treatment', 'water-damage', 'Deep clean and corrosion removal after liquid exposure.', 'Ultrasonic cleansing, board-level inspection, and moisture barrier reapplication. Success rate over 80%.', 9990, '1-2 days', 0, 'water', CURRENT_TIMESTAMP),
+(4, 'Back Glass Repair', 'back-glass-repair', 'Laser-separated back glass restoration for newer iPhones.', 'No more cracked backs. We use laser separation for precise removal and factory-grade adhesive for clean finish.', 6490, 'Same day', 0, 'back', CURRENT_TIMESTAMP),
+(5, 'Diagnostics & Software Tune-up', 'diagnostics-software', 'Full device check, OS tune-up, and optimization.', 'We scan hardware, update firmware, remove bloat, and optimise performance for gaming or business use.', 1990, '1 hour', 0, 'chip', CURRENT_TIMESTAMP);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `users`
 --
 
@@ -115,6 +145,13 @@ ALTER TABLE `product`
   ADD KEY `categoryid` (`categoryid`);
 
 --
+-- Indexes for table `services`
+--
+ALTER TABLE `services`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `services_slug_unique` (`slug`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -128,13 +165,19 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `category`
 --
 ALTER TABLE `category`
-  MODIFY `categoryid` int(50) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `categoryid` int(50) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `product`
 --
 ALTER TABLE `product`
-  MODIFY `productid` int(50) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `productid` int(50) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
+-- AUTO_INCREMENT for table `services`
+--
+ALTER TABLE `services`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Constraints for dumped tables

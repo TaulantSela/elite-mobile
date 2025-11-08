@@ -4,7 +4,7 @@ declare(strict_types=1);
 session_start();
 
 if (!isset($_SESSION['username'])) {
-    header('Location: LoginForm.php');
+    header('Location: ../LoginForm.php');
     exit;
 }
 

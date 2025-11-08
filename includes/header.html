@@ -1,19 +1,38 @@
-<nav class="navbar navbar-inverse ">
-    <div class="container-fluid">
-        <div class="navbar-header">
-            <img src="img/logo.png" class="img-thumbnail" width="85" height="10">
-        </div>
-        <div class="collapse navbar-collapse" id="myNavbar">
-            <ul class="nav navbar-nav">
-                <li><a href="home.php">Home</a></li>
-                <li><a href="products.php">Products</a></li>
-                <li><a href="service.php">Service</a> </li>
-                <li><a href="contact.php">Contact</a></li>
-                <li><a href="about.php">About us</a></li>
-            </ul>
-            <ul class="nav navbar-nav navbar-right">
-                <li><a href="admin/LoginForm.php"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
-            </ul>
+<header class="site-header">
+    <div class="site-top">
+        <div class="container">
+            <span class="site-pill">Elite Mobile</span>
+            <div class="site-top-links">
+                <a href="tel:+38970252525"><i class="fa-solid fa-phone"></i> 070 25 25 25</a>
+                <a href="mailto:hello@elitemobile.mk"><i class="fa-solid fa-envelope"></i> hello@elitemobile.mk</a>
+                <div class="currency-switch">
+                    <button type="button" class="currency-btn is-active">MKD</button>
+                    <button type="button" class="currency-btn">EUR</button>
+                </div>
+            </div>
         </div>
     </div>
-</nav>
+    <nav class="site-nav">
+        <div class="container nav-inner">
+            <a class="nav-logo" href="home.php" aria-label="Elite Mobile home">
+                <img src="img/elite-mobile_logo.png" alt="Elite Mobile logo">
+            </a>
+            <form class="nav-search" action="products.php" method="get">
+                <label class="sr-only" for="search">Search phones</label>
+                <input id="search" type="text" name="query" placeholder="Search flagship phones, accessories, services">
+                <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+            </form>
+            <ul class="nav-links">
+                <li><a href="products.php">Phones</a></li>
+                <li><a href="products.php?categoryid=1">Apple</a></li>
+                <li><a href="products.php?categoryid=2">Samsung</a></li>
+                <li><a href="products.php?categoryid=3">Google</a></li>
+                <li><a href="service.php">Services</a></li>
+                <li><a href="contact.php">Support</a></li>
+            </ul>
+            <div class="nav-actions">
+                <a href="LoginForm.php" class="nav-action-link"><i class="fa-solid fa-user"></i> Admin</a>
+            </div>
+        </div>
+    </nav>
+</header>
