@@ -156,7 +156,7 @@ if ($recentResult) {
                             <h2 class="h5 card-title mb-0">Latest products</h2>
                             <small class="text-muted">Recently published devices (latest 10).</small>
                         </div>
-                        <a class="btn btn-outline-secondary btn-sm" href="/admin/admin_products.php">Manage all</a>
+                        <a class="btn btn-outline-secondary btn-sm" href="<?php echo htmlspecialchars(elite_url('admin/admin_products.php'), ENT_QUOTES, 'UTF-8'); ?>">Manage all</a>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-striped mb-0">
@@ -179,7 +179,7 @@ if ($recentResult) {
                                         <td><?php echo formatPrice((int) $product['price']); ?></td>
                                         <td>
                                             <?php if (!empty($product['image'])): ?>
-                                                <img src="/img/<?php echo htmlspecialchars($product['image'], ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($product['productname'], ENT_QUOTES, 'UTF-8'); ?>" width="60" class="rounded">
+                                                <img src="<?php echo htmlspecialchars(elite_asset('img/' . $product['image']), ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($product['productname'], ENT_QUOTES, 'UTF-8'); ?>" width="60" class="rounded">
                                             <?php else: ?>
                                                 <span class="text-muted">n/a</span>
                                             <?php endif; ?>
@@ -199,7 +199,7 @@ if ($recentResult) {
         </div>
     </div>
 </main>
-<script src="/vendor/jquery/jquery.min.js"></script>
-<script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="<?php echo htmlspecialchars(elite_asset('vendor/jquery/jquery.min.js'), ENT_QUOTES, 'UTF-8'); ?>"></script>
+<script src="<?php echo htmlspecialchars(elite_asset('vendor/bootstrap/js/bootstrap.bundle.min.js'), ENT_QUOTES, 'UTF-8'); ?>"></script>
 </body>
 </html>
