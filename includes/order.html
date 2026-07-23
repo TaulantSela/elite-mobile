@@ -1,7 +1,7 @@
 <!-- javascript (JQuery) per order -->
 <script type="text/javascript">
 
-    var categoryid = "<?php echo $_GET['categoryid'] ?>";
+    var categoryid = "<?php echo (int) ($_GET['categoryid'] ?? 0); ?>";
     function changeURL(e)
     {
         $('#orderSelect').on('change', function()

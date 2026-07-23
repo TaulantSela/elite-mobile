@@ -1,10 +1,8 @@
+<?php require_once __DIR__ . '/../includes/admin_guard.php'; ?>
 <!DOCTYPE html>
 <?php
-session_start();
-if (!isset($_SESSION["username"])) {
-  echo "<script>window.open('LoginForm.php','_self')</script>";
-} else {
-  include("../includes/db_connection.php");
+include("../includes/db_connection.php");
+if (isset($_SESSION["username"])) {
 ?>
 <html lang="en">
 <?php include ("../includes/admin_head.html")?>
@@ -19,9 +17,11 @@ if (!isset($_SESSION["username"])) {
       </ol>
   <?php
 if(isset($_GET['edit_pro'])) {
-    $get_id = $_GET['edit_pro'];
-    $get_pro = "select * from product where productid='$get_id'";
-    $run_pro = mysqli_query($conn, $get_pro);
+    $get_id = (int) $_GET['edit_pro'];
+    $stmt_pro = mysqli_prepare($conn, "SELECT * FROM product WHERE productid = ?");
+	mysqli_stmt_bind_param($stmt_pro, "i", $get_id);
+	mysqli_stmt_execute($stmt_pro);
+	$run_pro = mysqli_stmt_get_result($stmt_pro);
     $i = 0;
     $row_pro=mysqli_fetch_array($run_pro);
     $pro_id = $row_pro['productid'];
@@ -30,8 +30,10 @@ if(isset($_GET['edit_pro'])) {
     $pro_price = $row_pro['price'];
     $pro_image = $row_pro['image'];
     $pro_desc = $row_pro['info'];
-    $get_cat = "select * from category where categoryid='$pro_cat'";
-    $run_cat=mysqli_query($conn, $get_cat);
+    $stmt_cat = mysqli_prepare($conn, "SELECT * FROM category WHERE categoryid = ?");
+	mysqli_stmt_bind_param($stmt_cat, "i", $pro_cat);
+	mysqli_stmt_execute($stmt_cat);
+	$run_cat = mysqli_stmt_get_result($stmt_cat);
     $row_cat=mysqli_fetch_array($run_cat);
     $category_title = $row_cat['categoryname'];
 }
@@ -77,8 +79,10 @@ if(isset($_GET['edit_pro'])) {
 		$update_id = $pro_id;
 		$product_price = $_POST['price'];
 		$product_desc = $_POST['info'];
-	    $update_product = "UPDATE product SET price = '$product_price', info = '$product_desc' where productid='$update_id'";
-		$run_product = mysqli_query($conn, $update_product);
+	    $stmt = mysqli_prepare($conn, "UPDATE product SET price = ?, info = ? WHERE productid = ?");
+		mysqli_stmt_bind_param($stmt, "ssi", $product_price, $product_desc, $update_id);
+		$run_product = mysqli_stmt_execute($stmt);
+		mysqli_stmt_close($stmt);
 		if($run_product)
 		{
   		    echo "<script>alert('Product has been updated!')</script>";

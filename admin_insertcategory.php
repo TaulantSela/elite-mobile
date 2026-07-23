@@ -1,13 +1,8 @@
+<?php require_once __DIR__ . '/includes/admin_guard.php'; ?>
 <!DOCTYPE html>
 <?php
-session_start();
-
-if (!isset($_SESSION["username"])) {
-
-  echo "<script>window.open('LoginForm.php','_self')</script>";
-}
-else {
 include("db_connection.php");
+if (isset($_SESSION["username"])) {
 ?>
 <html lang="en">
 <head>
@@ -84,8 +79,10 @@ include("db_connection.php");
 	if(isset($_POST['add_cat']))
   {
   	$new_cat = $_POST['new_cat'];
-  	$insert_cat = "insert into category (categoryname) values ('$new_cat')";
-  	$run_cat = mysqli_query($conn, $insert_cat);
+  	$stmt = mysqli_prepare($conn, "INSERT INTO category (categoryname) VALUES (?)");
+  	mysqli_stmt_bind_param($stmt, "s", $new_cat);
+  	$run_cat = mysqli_stmt_execute($stmt);
+  	mysqli_stmt_close($stmt);
   	if($run_cat)
       {
 	     echo "<script>alert('New Category has been inserted!')</script>";

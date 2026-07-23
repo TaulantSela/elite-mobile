@@ -1,11 +1,8 @@
+<?php require_once __DIR__ . '/../includes/admin_guard.php'; ?>
 <!DOCTYPE html>
 <?php
-session_start();
-if (!isset($_SESSION["username"])) {
-  echo "<script>window.open('LoginForm.php','_self')</script>";
-}
-else {
 include("../includes/db_connection.php");
+if (isset($_SESSION["username"])) {
 ?>
 <html lang="en">
 <?php include ("../includes/admin_head.html")?>

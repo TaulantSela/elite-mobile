@@ -89,16 +89,18 @@ INSERT INTO `product` (`productid`, `productname`, `categoryid`, `price`, `image
 
 CREATE TABLE `users` (
   `username` varchar(50) NOT NULL,
-  `password` varchar(50) NOT NULL
+  `password` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `users`
 --
 
+-- Passwords are stored as bcrypt hashes (see includes/auth.php / password_hash).
+-- Seed credentials: elijon / elijon123 and taulant / taulant.
 INSERT INTO `users` (`username`, `password`) VALUES
-('elijon', 'elijon123'),
-('taulant', 'taulant');
+('elijon', '$2y$12$P/NsBP4iJANcZ5vcBUwjm.ovCAF4whSfNTQ/3latB8QaXdsMxM9OC'),
+('taulant', '$2y$12$sBsRwkS1ytte/oEQd89UZucrb8/FnTkWE4q5jparBwds.aFfSYqTK');
 
 --
 -- Indexes for dumped tables

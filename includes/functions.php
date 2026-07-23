@@ -20,9 +20,11 @@ function showCategory(){
 
 function showProduct(){
     global $conn;
-    $productid = $_GET["productid"];
-    $query = "SELECT * FROM product p , category c where p.productid = $productid and p.categoryid = c.categoryid";
-    $result = mysqli_query($conn, $query);
+    $productid = (int) ($_GET["productid"] ?? 0);
+    $stmt = mysqli_prepare($conn, "SELECT * FROM product p , category c WHERE p.productid = ? AND p.categoryid = c.categoryid");
+    mysqli_stmt_bind_param($stmt, "i", $productid);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
     while ($row = mysqli_fetch_object($result)) {
         $image = $row->image;
         $image_src = "img/" . $image;
@@ -32,9 +34,11 @@ function showProduct(){
 
 function productDetails(){
     global $conn;
-    $productid = $_GET["productid"];
-    $query = "SELECT * FROM product p , category c where p.productid = $productid and p.categoryid = c.categoryid";
-    $result = mysqli_query($conn , $query);
+    $productid = (int) ($_GET["productid"] ?? 0);
+    $stmt = mysqli_prepare($conn, "SELECT * FROM product p , category c WHERE p.productid = ? AND p.categoryid = c.categoryid");
+    mysqli_stmt_bind_param($stmt, "i", $productid);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
     while ($row = mysqli_fetch_object($result))
     {
         echo "<br/><br/>";
@@ -89,22 +93,24 @@ function selectOrder(){
 
 function order(){
     global $conn;
-    if (isset($_GET['order']))
-    {
-        $sql = "SELECT * from category c, product p where c.categoryid = ".$_GET["categoryid"]." and c.categoryid = p.categoryid ORDER BY ".$_GET['order'];
-    }
-    else
-    {
-        $sql = "SELECT * from category c, product p where c.categoryid = ".$_GET["categoryid"]." and c.categoryid = p.categoryid ";
-    }
-    $result = mysqli_query($conn ,$sql);
+    $categoryid = (int) ($_GET["categoryid"] ?? 0);
+
+    // ORDER BY columns can't be bound as parameters, so whitelist them.
+    $allowed_order = ['price' => 'p.price', 'productname' => 'p.productname'];
+    $order_key = $_GET['order'] ?? '';
+    $order_sql = isset($allowed_order[$order_key]) ? ' ORDER BY '.$allowed_order[$order_key] : '';
+
+    $sql = "SELECT * from category c, product p where c.categoryid = ? and c.categoryid = p.categoryid".$order_sql;
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "i", $categoryid);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
     echo "<form method='GET' align='center'>";
     $i=0;
     while($row = mysqli_fetch_object($result))
     {
         $image = $row->image;
         $image_src = "img/".$image;
-        $categoryid = $_GET["categoryid"];
         echo "<a href='description.php?productid=$row->productid' class='btn btn-default btn-xs' target='_blank'>";
         echo "<h3>".$row->productname."</h3>";
         echo "<img src = ".$image_src."><br>";

@@ -1,14 +1,8 @@
+<?php require_once __DIR__ . '/includes/admin_guard.php'; ?>
 <!DOCTYPE html>
 <?php
-session_start();
-
-if (!isset($_SESSION["username"])) {
-
-  echo "<script>window.open('LoginForm.php','_self')</script>";
-}
-else {
 include("db_connection.php");
-
+if (isset($_SESSION["username"])) {
 ?>
 <html lang="en">
 
@@ -80,11 +74,12 @@ include("db_connection.php");
 
 if(isset($_GET['edit_cat'])){
 
-	$cat_id = $_GET['edit_cat'];
+	$cat_id = (int) $_GET['edit_cat'];
 
-	$get_cat = "select * from category where categoryid='$cat_id'";
-
-	$run_cat = mysqli_query($conn, $get_cat);
+	$stmt_cat = mysqli_prepare($conn, "SELECT * FROM category WHERE categoryid = ?");
+	mysqli_stmt_bind_param($stmt_cat, "i", $cat_id);
+	mysqli_stmt_execute($stmt_cat);
+	$run_cat = mysqli_stmt_get_result($stmt_cat);
 
 	$row_cat = mysqli_fetch_array($run_cat);
 
@@ -106,9 +101,10 @@ if(isset($_GET['edit_cat'])){
 
   	$new_cat = $_POST['new_cat'];
 
-  	$update_cat = "update category set categoryname='$new_cat' where categoryid='$update_id'";
-
-  	$run_cat = mysqli_query($conn, $update_cat);
+  	$stmt = mysqli_prepare($conn, "UPDATE category SET categoryname = ? WHERE categoryid = ?");
+  	mysqli_stmt_bind_param($stmt, "si", $new_cat, $update_id);
+  	$run_cat = mysqli_stmt_execute($stmt);
+  	mysqli_stmt_close($stmt);
 
   	if($run_cat)
     {

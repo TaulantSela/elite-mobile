@@ -1,17 +1,8 @@
+<?php require_once __DIR__ . '/includes/admin_guard.php'; ?>
 <!DOCTYPE html>
 <?php
-
-session_start();
-
-if (!isset($_SESSION["username"])) {
-
-  echo "<script>window.open('LoginForm.php','_self')</script>";
-}
-else {
-
-
 include("db_connection.php");
-
+if (isset($_SESSION["username"])) {
 ?>
 <html lang="en">
 
@@ -136,17 +127,23 @@ include("db_connection.php");
 <?php
 	if(isset($_POST['insertpro'])){
 		$product_title = $_POST['productname'];
-		$product_cat= $_POST['categoryid'];
+		$product_cat = (int) ($_POST['categoryid'] ?? 0);
 		$product_price = $_POST['price'];
 		$product_info = $_POST['info'];
 
-		$product_image = $_FILES['image']['name'];
-		$product_image_tmp = $_FILES['image']['tmp_name'];
+		$product_image = '';
+		if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+			$ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+			if (in_array($ext, ['jpg','jpeg','png','gif','webp'], true)) {
+				$product_image = uniqid('pro_', true) . '.' . $ext;
+				move_uploaded_file($_FILES['image']['tmp_name'], __DIR__ . "/img/$product_image");
+			}
+		}
 
-		move_uploaded_file($product_image_tmp,"img/$product_image");
-
-		$insert_product ="insert into product (`productname`, `categoryid`, `price`, `image`, `info`) values ('$product_title','$product_cat','$product_price', '$product_image','$product_info')";
-		$insert_pro = mysqli_query($conn, $insert_product);
+		$stmt = mysqli_prepare($conn, "INSERT INTO product (`productname`, `categoryid`, `price`, `image`, `info`) VALUES (?, ?, ?, ?, ?)");
+		mysqli_stmt_bind_param($stmt, "sisss", $product_title, $product_cat, $product_price, $product_image, $product_info);
+		$insert_pro = mysqli_stmt_execute($stmt);
+		mysqli_stmt_close($stmt);
 
 		if($insert_pro){
 		echo "<script>alert('Product Has been inserted!')</script>";
