@@ -367,4 +367,177 @@ function renderPaypalForm(int $productId, string $productName, float $price): vo
         </form>";
 }
 
-?>
+/* ------------------------------------------------------------------
+ * Redesign data layer: unified catalog browsing (brand + search + sort)
+ * ------------------------------------------------------------------ */
+
+/**
+ * Allowed sort keys mapped to safe ORDER BY clauses (column names can't be bound).
+ */
+function shopSortOptions(): array
+{
+    return [
+        'newest' => 'p.productid DESC',
+        'price_desc' => 'p.price DESC',
+        'price_asc' => 'p.price ASC',
+        'name' => 'p.productname ASC',
+    ];
+}
+
+function getShopSort(): string
+{
+    $requested = isset($_GET['sort']) ? (string) $_GET['sort'] : 'newest';
+
+    return array_key_exists($requested, shopSortOptions()) ? $requested : 'newest';
+}
+
+function getShopSearch(): string
+{
+    return isset($_GET['query']) ? trim((string) $_GET['query']) : '';
+}
+
+/**
+ * Brands (categories) with the number of products in each — powers the filter chips.
+ *
+ * @return array<int, array{id:int, name:string, count:int}>
+ */
+function fetchBrandsWithCounts(): array
+{
+    $connection = getDbConnection();
+    $query = 'SELECT c.categoryid, c.categoryname, COUNT(p.productid) AS product_count
+              FROM category c
+              LEFT JOIN product p ON p.categoryid = c.categoryid
+              GROUP BY c.categoryid, c.categoryname
+              ORDER BY c.categoryname ASC';
+    $result = mysqli_query($connection, $query);
+
+    if (!$result) {
+        return [];
+    }
+
+    $brands = [];
+    while ($row = mysqli_fetch_assoc($result)) {
+        $brands[] = [
+            'id' => (int) $row['categoryid'],
+            'name' => $row['categoryname'],
+            'count' => (int) $row['product_count'],
+        ];
+    }
+
+    mysqli_free_result($result);
+
+    return $brands;
+}
+
+/**
+ * Catalog query with optional brand filter, name search, and whitelisted sort.
+ *
+ * @return array<int, array{id:int, name:string, price:int, image:string, categoryId:int, category:string}>
+ */
+function fetchProducts(?int $categoryId = null, string $search = '', string $sort = 'newest'): array
+{
+    $connection = getDbConnection();
+    $orderBy = shopSortOptions()[$sort] ?? shopSortOptions()['newest'];
+
+    $sql = 'SELECT p.productid, p.productname, p.price, p.image, p.categoryid, c.categoryname
+            FROM product p
+            JOIN category c ON p.categoryid = c.categoryid
+            WHERE 1 = 1';
+
+    $types = '';
+    $params = [];
+
+    if ($categoryId !== null && $categoryId > 0) {
+        $sql .= ' AND p.categoryid = ?';
+        $types .= 'i';
+        $params[] = $categoryId;
+    }
+
+    if ($search !== '') {
+        $sql .= ' AND p.productname LIKE ?';
+        $types .= 's';
+        $params[] = '%' . $search . '%';
+    }
+
+    $sql .= ' ORDER BY ' . $orderBy;
+
+    $statement = mysqli_prepare($connection, $sql);
+    if (!$statement) {
+        return [];
+    }
+
+    if ($types !== '') {
+        mysqli_stmt_bind_param($statement, $types, ...$params);
+    }
+
+    mysqli_stmt_execute($statement);
+    $result = mysqli_stmt_get_result($statement);
+
+    if (!$result) {
+        mysqli_stmt_close($statement);
+        return [];
+    }
+
+    $products = [];
+    while ($row = mysqli_fetch_assoc($result)) {
+        $products[] = [
+            'id' => (int) $row['productid'],
+            'name' => $row['productname'],
+            'price' => (int) $row['price'],
+            'image' => $row['image'],
+            'categoryId' => (int) $row['categoryid'],
+            'category' => $row['categoryname'],
+        ];
+    }
+
+    mysqli_free_result($result);
+    mysqli_stmt_close($statement);
+
+    return $products;
+}
+
+/**
+ * All repair/consultation services for the services page.
+ *
+ * @return array<int, array<string, mixed>>
+ */
+function fetchAllServices(): array
+{
+    $connection = getDbConnection();
+    $query = 'SELECT id, name, short_description, description, price, duration, is_featured, icon
+              FROM services
+              ORDER BY is_featured DESC, price DESC';
+    $result = mysqli_query($connection, $query);
+
+    if (!$result) {
+        return [];
+    }
+
+    $services = [];
+    while ($row = mysqli_fetch_assoc($result)) {
+        $services[] = [
+            'id' => (int) $row['id'],
+            'name' => $row['name'],
+            'short_description' => $row['short_description'],
+            'description' => $row['description'],
+            'price' => (int) $row['price'],
+            'duration' => $row['duration'],
+            'is_featured' => (int) $row['is_featured'] === 1,
+            'icon' => $row['icon'] ?? 'wrench',
+        ];
+    }
+
+    mysqli_free_result($result);
+
+    return $services;
+}
+
+/**
+ * Render the product spec HTML stored in product.info, limited to a safe tag whitelist.
+ */
+function renderProductInfo(string $info): string
+{
+    $allowed = '<p><br><strong><b><em><i><ul><ol><li><span>';
+
+    return strip_tags($info, $allowed);
+}
