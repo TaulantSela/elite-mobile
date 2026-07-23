@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/admin/admin_init.php';
 require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/blob.php';
 
 $categories = fetchAllCategories();
 $errors = [];
@@ -26,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $imagePath = '';
+    $extension = '';
     $imageProvided = isset($_FILES['image']) && is_uploaded_file($_FILES['image']['tmp_name']);
 
     if (!$imageProvided) {
@@ -43,22 +45,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$errors) {
-        $slugBase = preg_replace('/[^a-z0-9]+/i', '-', strtolower($name));
-        $slugBase = trim($slugBase, '-');
-        if ($slugBase === '') {
-            $slugBase = 'product';
-        }
-        $fileName = $slugBase . '-' . time() . '.' . ($extension ?? 'jpg');
-        $uploadsDirectory = __DIR__ . '/img/products';
-        if (!is_dir($uploadsDirectory)) {
-            @mkdir($uploadsDirectory, 0755, true);
-        }
-        $targetPath = $uploadsDirectory . '/' . $fileName;
+        $slugBase = trim((string) preg_replace('/[^a-z0-9]+/i', '-', strtolower($name)), '-') ?: 'product';
+        $fileName = $slugBase . '-' . time() . '.' . $extension;
+        $mimeByExtension = ['jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png', 'webp' => 'image/webp'];
+        $contentType = $mimeByExtension[$extension] ?? 'application/octet-stream';
 
-        if (!@move_uploaded_file($_FILES['image']['tmp_name'], $targetPath)) {
-            $errors[] = 'Failed to store the uploaded image. Please try again.';
+        if (blob_enabled()) {
+            // Persist to Vercel Blob so the image survives serverless deploys.
+            $imagePath = (string) blob_put($_FILES['image']['tmp_name'], 'products/' . $fileName, $contentType);
+            if ($imagePath === '') {
+                $errors[] = 'Could not upload the image to Blob storage. Please try again.';
+            }
         } else {
-            $imagePath = 'products/' . $fileName;
+            // Local/dev fallback: write to the img/products directory on disk.
+            $uploadsDirectory = __DIR__ . '/../img/products';
+            if (!is_dir($uploadsDirectory)) {
+                @mkdir($uploadsDirectory, 0755, true);
+            }
+            if (!@move_uploaded_file($_FILES['image']['tmp_name'], $uploadsDirectory . '/' . $fileName)) {
+                $errors[] = 'Failed to store the uploaded image. Please try again.';
+            } else {
+                $imagePath = 'products/' . $fileName;
+            }
         }
     }
 
@@ -198,7 +206,7 @@ require __DIR__ . '/includes/admin/layout_top.php';
                                     <td class="t-price"><?php echo formatPrice((int) $product['price']); ?></td>
                                     <td>
                                         <?php if (!empty($product['image'])): ?>
-                                            <img class="prod-thumb" src="<?php echo $e(elite_asset('img/' . $product['image'])); ?>" alt="<?php echo $e($product['productname']); ?>">
+                                            <img class="prod-thumb" src="<?php echo $e(product_image_src($product['image'])); ?>" alt="<?php echo $e($product['productname']); ?>">
                                         <?php else: ?>
                                             <span class="hint">n/a</span>
                                         <?php endif; ?>

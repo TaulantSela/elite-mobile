@@ -117,7 +117,7 @@ $sortLabels = [
                     <article class="product-card">
                         <a class="card-link" href="description.php?productid=<?php echo (int) $product['id']; ?>" aria-label="<?php echo $e($product['name']); ?>"></a>
                         <div class="product-photo">
-                            <img src="img/<?php echo $e($product['image']); ?>" alt="<?php echo $e($product['name']); ?>">
+                            <img src="<?php echo $e(product_image_src($product['image'])); ?>" alt="<?php echo $e($product['name']); ?>">
                         </div>
                         <div class="product-body">
                             <span class="product-brand"><?php echo $e($product['category']); ?></span>

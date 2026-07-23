@@ -116,16 +116,18 @@ INSERT INTO `services` (`id`, `name`, `slug`, `short_description`, `description`
 
 CREATE TABLE `users` (
   `username` varchar(50) NOT NULL,
-  `password` varchar(50) NOT NULL
+  `password` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `users`
 --
 
+-- Passwords are bcrypt hashes (PHP password_hash / PASSWORD_DEFAULT).
+-- Dev credentials: elijon / elijon123  and  taulant / taulant
 INSERT INTO `users` (`username`, `password`) VALUES
-('elijon', 'elijon123'),
-('taulant', 'taulant');
+('elijon', '$2y$12$N614K64naAd6XnleNh6e3e487xZWOkk0LhYiepupNE4eJHeMoUI1.'),
+('taulant', '$2y$12$SnYTO8.gEeiTPMoYbXzKe.fnXtKSpnXDIj1ZqOz.cKDRHMwEkOYKm');
 
 --
 -- Indexes for dumped tables

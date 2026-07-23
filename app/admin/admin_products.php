@@ -39,7 +39,7 @@ require __DIR__ . '/../includes/admin/layout_top.php';
                         ?>
                         <tr>
                             <td><?php echo $rowNumber; ?></td>
-                            <td><img class="prod-thumb" src="<?php echo $e(elite_asset('img/' . $row['image'])); ?>" alt="<?php echo $e($row['productname']); ?>"></td>
+                            <td><img class="prod-thumb" src="<?php echo $e(product_image_src($row['image'])); ?>" alt="<?php echo $e($row['productname']); ?>"></td>
                             <td class="t-name"><?php echo $e($row['productname']); ?></td>
                             <td><span class="a-tag"><?php echo $e($row['categoryname']); ?></span></td>
                             <td class="t-price"><?php echo formatPrice((int) $row['price']); ?></td>

@@ -11,37 +11,22 @@ if (isset($_SESSION['username'])) {
 }
 
 require_once __DIR__ . '/includes/db_connection.php';
+require_once __DIR__ . '/includes/auth.php';
 
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
     $username = trim($_POST['username'] ?? '');
-    $password = trim($_POST['password'] ?? '');
+    $password = (string) ($_POST['password'] ?? '');
 
     if ($username === '' || $password === '') {
         $error = 'Please provide both username and password.';
+    } elseif (elite_verify_login($conn, $username, $password)) {
+        session_regenerate_id(true);
+        $_SESSION['username'] = $username;
+        header('Location: dashboard.php');
+        exit;
     } else {
-        $statement = mysqli_prepare($conn, 'SELECT username FROM users WHERE username = ? AND password = ? LIMIT 1');
-
-        if ($statement && mysqli_stmt_bind_param($statement, 'ss', $username, $password) && mysqli_stmt_execute($statement)) {
-            $result = mysqli_stmt_get_result($statement);
-
-            if ($result && mysqli_num_rows($result) === 1) {
-                $_SESSION['username'] = $username;
-                mysqli_stmt_close($statement);
-                header('Location: dashboard.php');
-                exit;
-            }
-
-            if ($result) {
-                mysqli_free_result($result);
-            }
-        }
-
-        if ($statement) {
-            mysqli_stmt_close($statement);
-        }
-
         $error = 'Invalid credentials. Please try again.';
     }
 }

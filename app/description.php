@@ -35,7 +35,7 @@ $e = static fn (string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8');
             </a>
             <div class="pdp-grid">
                 <div class="pdp-media">
-                    <img src="img/<?php echo $e($product['image']); ?>" alt="<?php echo $name; ?>">
+                    <img src="<?php echo $e(product_image_src($product['image'])); ?>" alt="<?php echo $name; ?>">
                 </div>
                 <div class="pdp-body">
                     <span class="pdp-brand"><i class="fa-solid fa-mobile-screen"></i> <?php echo $brand; ?></span>

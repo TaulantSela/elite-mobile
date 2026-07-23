@@ -87,7 +87,7 @@ $services = fetchHighlightedServices(4);
                 <?php foreach ($newArrivals as $product): ?>
                     <article class="product-card">
                         <div class="product-photo">
-                            <img src="img/<?php echo htmlspecialchars($product['image'], ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8'); ?>">
+                            <img src="<?php echo htmlspecialchars(product_image_src($product['image']), ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8'); ?>">
                         </div>
                         <div class="product-body">
                             <h3 class="product-name"><?php echo htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8'); ?></h3>
@@ -113,7 +113,7 @@ $services = fetchHighlightedServices(4);
                 <?php foreach ($featured as $product): ?>
                     <article class="product-card">
                         <div class="product-photo">
-                            <img src="img/<?php echo htmlspecialchars($product['image'], ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8'); ?>">
+                            <img src="<?php echo htmlspecialchars(product_image_src($product['image']), ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8'); ?>">
                         </div>
                         <div class="product-body">
                             <h3 class="product-name"><?php echo htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8'); ?></h3>

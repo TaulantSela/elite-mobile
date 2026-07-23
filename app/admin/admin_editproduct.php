@@ -79,7 +79,7 @@ require __DIR__ . '/../includes/admin/layout_top.php';
                 </div>
             <?php endif; ?>
             <div style="display:flex;gap:1.5rem;align-items:flex-start;flex-wrap:wrap;">
-                <img class="prod-thumb" style="width:120px;height:120px;" src="<?php echo $e(elite_asset('img/' . $product['image'])); ?>" alt="<?php echo $e($product['productname']); ?>">
+                <img class="prod-thumb" style="width:120px;height:120px;" src="<?php echo $e(product_image_src($product['image'])); ?>" alt="<?php echo $e($product['productname']); ?>">
                 <form class="admin-form" method="post" action="admin_editproduct.php" style="flex:1;min-width:280px;">
                     <input type="hidden" name="productid" value="<?php echo (int) $product['productid']; ?>">
                     <div class="field">
