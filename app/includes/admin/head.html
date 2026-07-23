@@ -1,25 +1,19 @@
 <?php
 require_once __DIR__ . '/../url_helpers.php';
 $faviconHref = elite_asset('favicon.ico');
-$bootstrapCss = elite_asset('vendor/bootstrap/css/bootstrap.min.css');
-$fontAwesomeCss = elite_asset('vendor/font-awesome/css/font-awesome.min.css');
-$dataTablesCss = elite_asset('vendor/datatables/dataTables.bootstrap4.css');
-$adminCss = elite_asset('css/sb-admin.css');
+$adminCss = elite_asset('styles/admin.css');
+$pageTitle = isset($adminTitle) ? $adminTitle . ' · Elite Mobile Admin' : 'Elite Mobile Admin';
 ?>
 <head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
-    <title>EliteMobile - Admin Panel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><?php echo htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8'); ?></title>
     <link rel="icon" type="image/x-icon" href="<?php echo htmlspecialchars($faviconHref, ENT_QUOTES, 'UTF-8'); ?>">
-    <!-- Bootstrap core CSS-->
-    <link href="<?php echo htmlspecialchars($bootstrapCss, ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
-    <!-- Custom fonts for this template-->
-    <link href="<?php echo htmlspecialchars($fontAwesomeCss, ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet" type="text/css">
-    <!-- Page level plugin CSS-->
-    <link href="<?php echo htmlspecialchars($dataTablesCss, ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
-    <!-- Custom styles for this template-->
-    <link href="<?php echo htmlspecialchars($adminCss, ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars($adminCss, ENT_QUOTES, 'UTF-8'); ?>">
 </head>

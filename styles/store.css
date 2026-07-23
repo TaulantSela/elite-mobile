@@ -899,3 +899,64 @@ a:hover {
     .shop-controls { justify-content: space-between; }
     .shop-search { min-width: 0; flex: 1; }
 }
+
+/* =====================================================================
+   Contact & About pages
+   ===================================================================== */
+.contact-layout { padding: 3rem 1.25rem 4rem; }
+.contact-layout .container { margin: 0 auto; }
+.contact-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 2rem; align-items: start; }
+.contact-card, .info-card {
+    background: #fff; border: 1px solid var(--em-line); border-radius: var(--em-radius);
+    padding: 2rem; box-shadow: var(--em-shadow);
+}
+.contact-card h2, .info-card h2 { margin: 0 0 0.35rem; font-size: 1.4rem; color: var(--em-ink); }
+.contact-card .muted, .info-card .muted { color: var(--em-ink-soft); margin: 0 0 1.5rem; }
+.form-field { margin-bottom: 1.1rem; }
+.form-field label { display: block; font-weight: 600; font-size: 0.9rem; color: var(--em-ink); margin-bottom: 0.4rem; }
+.form-field input, .form-field textarea {
+    width: 100%; border: 1px solid var(--em-line); border-radius: var(--em-radius-sm);
+    padding: 0.75rem 0.9rem; font-family: inherit; font-size: 0.95rem; color: var(--em-ink);
+    background: #fff; transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.form-field input:focus, .form-field textarea:focus {
+    outline: none; border-color: var(--em-blue); box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+}
+.form-field textarea { resize: vertical; min-height: 140px; }
+.form-alert { padding: 0.85rem 1rem; border-radius: var(--em-radius-sm); font-weight: 500; margin-bottom: 1.25rem; font-size: 0.92rem; }
+.form-alert.success { background: rgba(4,120,87,0.1); color: #047857; border: 1px solid rgba(4,120,87,0.25); }
+.form-alert.error { background: rgba(220,38,38,0.08); color: #b91c1c; border: 1px solid rgba(220,38,38,0.22); }
+.contact-card .btn-dark { width: 100%; justify-content: center; margin-top: 0.25rem; }
+
+.info-card + .info-card { margin-top: 1.5rem; }
+.info-item { display: flex; align-items: flex-start; gap: 0.9rem; padding: 0.85rem 0; border-bottom: 1px solid var(--em-line); }
+.info-item:last-child { border-bottom: none; }
+.info-item .info-ic {
+    flex: none; width: 42px; height: 42px; border-radius: 12px; display: inline-flex; align-items: center;
+    justify-content: center; background: var(--em-grad); color: #fff; font-size: 1.05rem;
+    box-shadow: 0 6px 16px rgba(37,99,235,0.28);
+}
+.info-item .info-label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--em-ink-soft); font-weight: 600; }
+.info-item .info-value { font-weight: 600; color: var(--em-ink); }
+.info-item .info-value a { color: var(--em-ink); }
+.info-item .info-value a:hover { color: var(--em-blue); }
+
+/* About */
+.about-section { padding: 3.5rem 1.25rem; }
+.about-section .container { margin: 0 auto; }
+.about-lead { max-width: 760px; margin: 0 auto 2.5rem; text-align: center; }
+.about-lead h2 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 800; color: var(--em-ink); margin: 0 0 1rem; }
+.about-lead p { color: var(--em-ink-soft); font-size: 1.05rem; }
+.about-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.25rem; margin-bottom: 1rem; }
+.about-stat { background: #fff; border: 1px solid var(--em-line); border-radius: var(--em-radius); padding: 1.75rem; text-align: center; box-shadow: var(--em-shadow); }
+.about-stat strong { display: block; font-size: 2.4rem; font-weight: 800; background: var(--em-grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.about-stat span { color: var(--em-ink-soft); font-size: 0.95rem; }
+.about-values { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; }
+.about-value { background: #fff; border: 1px solid var(--em-line); border-radius: var(--em-radius); padding: 1.75rem; box-shadow: var(--em-shadow); }
+.about-value .av-ic { width: 48px; height: 48px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; background: var(--em-grad); color: #fff; font-size: 1.25rem; margin-bottom: 1rem; }
+.about-value h3 { margin: 0 0 0.5rem; color: var(--em-ink); font-size: 1.15rem; }
+.about-value p { margin: 0; color: var(--em-ink-soft); }
+
+@media (max-width: 860px) {
+    .contact-grid { grid-template-columns: 1fr; }
+}

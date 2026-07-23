@@ -1,96 +1,113 @@
-<!DOCTYPE html>
 <?php
-session_start();
-if (!isset($_SESSION["username"])) {
-  header('Location: ../LoginForm.php');
-  exit;
-} else {
-  include("../includes/db_connection.php");
-?>
-<html lang="en">
-<?php include("../includes/admin/head.html")?>
-<body class="fixed-nav sticky-footer bg-dark" id="page-top">
-<?php include("../includes/admin/header.html")?>
-  <div class="content-wrapper">
-    <div class="container-fluid">
-      <!-- Breadcrumbs-->
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item">Edit</li>
-        <li class="breadcrumb-item active">Product</li>
-      </ol>
-  <?php
-if(isset($_GET['edit_pro'])) {
-    $get_id = $_GET['edit_pro'];
-    $get_pro = "select * from product where productid='$get_id'";
-    $run_pro = mysqli_query($conn, $get_pro);
-    $i = 0;
-    $row_pro=mysqli_fetch_array($run_pro);
-    $pro_id = $row_pro['productid'];
-    $pro_title = $row_pro['productname'];
-    $pro_cat = $row_pro['categoryid'];
-    $pro_price = $row_pro['price'];
-    $pro_image = $row_pro['image'];
-    $pro_desc = $row_pro['info'];
-    $get_cat = "select * from category where categoryid='$pro_cat'";
-    $run_cat=mysqli_query($conn, $get_cat);
-    $row_cat=mysqli_fetch_array($run_cat);
-    $category_title = $row_cat['categoryname'];
+declare(strict_types=1);
+
+require_once __DIR__ . '/admin_init.php';
+require_once __DIR__ . '/../includes/functions.php';
+
+$categories = fetchAllCategories();
+$errors = [];
+$success = '';
+$productId = (int) ($_GET['edit_pro'] ?? $_POST['productid'] ?? 0);
+
+if ($productId <= 0) {
+    header('Location: admin_products.php');
+    exit;
 }
-?>
-<html>
-	<head>
-		<title>Update Product</title>
 
-<script src="//tinymce.cachefly.net/4.1/tinymce.min.js"></script>
-<script>
-        tinymce.init({selector:'textarea'});
-</script>
-	</head>
-<body >
-	<form action="" method="post" enctype="multipart/form-data">
-		<table align="center" width="795" >
-			<tr align="center">
-				<td colspan="7"><h2>Edit & Update Product</h2></td>
-			</tr>
-            <tr>
-				<td align="right"><b>Product Title:</b></td>
-				<td><input readonly type="text" name="productname" size="60" value="<?php echo $pro_title;?>"/></td>
-			</tr>
-			<tr>
-				<td align="right"><b>Product Price:</b></td>
-				<td><input type="text" name="price" value="<?php echo $pro_price;?>"/></td>
-			</tr>
-			<tr>
-				<td align="right"><b>Product Description:</b></td>
-				<td><textarea name="info" cols="20" rows="10"><?php echo $pro_desc;?></textarea></td>
-			</tr>
-			<tr align="center">
-				<td colspan="7"><input type="submit" name="update_product" value="Update Product"/></td>
-			</tr>
-		</table>
-	</form>
-</body>
-</html>
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_product'])) {
+    $categoryId = (int) ($_POST['categoryid'] ?? 0);
+    $priceInput = preg_replace('/[^0-9]/', '', $_POST['price'] ?? '');
+    $price = $priceInput !== '' ? (int) $priceInput : 0;
+    $info = trim($_POST['info'] ?? '');
 
-<?php
-	if(isset($_POST['update_product']))
-  {
-		$update_id = $pro_id;
-		$product_price = $_POST['price'];
-		$product_desc = $_POST['info'];
-	    $update_product = "UPDATE product SET price = '$product_price', info = '$product_desc' where productid='$update_id'";
-		$run_product = mysqli_query($conn, $update_product);
-		if($run_product)
-		{
-  		    echo "<script>alert('Product has been updated!')</script>";
-  		    echo "<script>window.open('admin_products.php','_self')</script>";
-		}
-	}
+    if ($categoryId <= 0) {
+        $errors[] = 'Please select a category.';
+    }
+    if ($price <= 0) {
+        $errors[] = 'Please enter a valid price in MKD.';
+    }
+
+    if (!$errors) {
+        $statement = mysqli_prepare($conn, 'UPDATE product SET categoryid = ?, price = ?, info = ? WHERE productid = ?');
+        if ($statement) {
+            mysqli_stmt_bind_param($statement, 'iisi', $categoryId, $price, $info, $productId);
+            if (mysqli_stmt_execute($statement)) {
+                $success = 'Product updated successfully.';
+            } else {
+                $errors[] = 'Database error while updating the product.';
+            }
+            mysqli_stmt_close($statement);
+        } else {
+            $errors[] = 'Database error while preparing the statement.';
+        }
+    }
+}
+
+// Load current product
+$statement = mysqli_prepare($conn, 'SELECT productid, productname, categoryid, price, image, info FROM product WHERE productid = ? LIMIT 1');
+mysqli_stmt_bind_param($statement, 'i', $productId);
+mysqli_stmt_execute($statement);
+$product = mysqli_fetch_assoc(mysqli_stmt_get_result($statement)) ?: null;
+mysqli_stmt_close($statement);
+
+$e = static fn (string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8');
+$adminTitle = 'Edit product';
+$adminActive = 'products';
+require __DIR__ . '/../includes/admin/layout_top.php';
 ?>
+
+<?php if ($product === null): ?>
+    <div class="admin-card"><div class="admin-card-body"><div class="a-empty"><i class="fa-solid fa-triangle-exclamation"></i> Product not found. <a href="<?php echo $e(elite_asset('admin/admin_products.php')); ?>">Back to products</a></div></div></div>
+<?php else: ?>
+    <div class="admin-card" style="max-width:720px;">
+        <div class="admin-card-head">
+            <div>
+                <h2>Edit product</h2>
+                <p><?php echo $e($product['productname']); ?></p>
+            </div>
+            <a class="abtn abtn-ghost" href="<?php echo $e(elite_asset('admin/admin_products.php')); ?>"><i class="fa-solid fa-arrow-left"></i> Back to products</a>
+        </div>
+        <div class="admin-card-body">
+            <?php if ($errors): ?>
+                <div class="a-alert error"><i class="fa-solid fa-circle-exclamation"></i>
+                    <ul><?php foreach ($errors as $err): ?><li><?php echo $e($err); ?></li><?php endforeach; ?></ul>
+                </div>
+            <?php endif; ?>
+            <?php if ($success): ?>
+                <div class="a-alert success"><i class="fa-solid fa-circle-check"></i> <?php echo $e($success); ?>
+                    <a href="<?php echo $e(elite_asset('admin/admin_products.php')); ?>" style="margin-left:auto;font-weight:600;">View all →</a>
+                </div>
+            <?php endif; ?>
+            <div style="display:flex;gap:1.5rem;align-items:flex-start;flex-wrap:wrap;">
+                <img class="prod-thumb" style="width:120px;height:120px;" src="<?php echo $e(elite_asset('img/' . $product['image'])); ?>" alt="<?php echo $e($product['productname']); ?>">
+                <form class="admin-form" method="post" action="admin_editproduct.php" style="flex:1;min-width:280px;">
+                    <input type="hidden" name="productid" value="<?php echo (int) $product['productid']; ?>">
+                    <div class="field">
+                        <label for="productname">Product name</label>
+                        <input type="text" id="productname" value="<?php echo $e($product['productname']); ?>" readonly>
+                        <p class="hint">Product name can't be changed here.</p>
+                    </div>
+                    <div class="field">
+                        <label for="categoryid">Category</label>
+                        <select id="categoryid" name="categoryid" required>
+                            <?php foreach ($categories as $category): ?>
+                                <option value="<?php echo (int) $category['id']; ?>" <?php echo (int) $category['id'] === (int) $product['categoryid'] ? 'selected' : ''; ?>><?php echo $e($category['name']); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="price">Price (MKD)</label>
+                        <input type="text" id="price" name="price" value="<?php echo (int) $product['price']; ?>" required>
+                    </div>
+                    <div class="field">
+                        <label for="info">Key highlights (HTML allowed)</label>
+                        <textarea id="info" name="info" style="min-height:160px;"><?php echo $e((string) $product['info']); ?></textarea>
+                    </div>
+                    <button type="submit" name="update_product" class="abtn abtn-grad"><i class="fa-solid fa-floppy-disk"></i> Save changes</button>
+                </form>
+            </div>
+        </div>
     </div>
-      <?php include ("../includes/admin/footer.html")?>
-      <?php include ("../includes/admin/scripts.html")?>
-  </div>
-</body>
-</html>
-<?php } ?>
+<?php endif; ?>
+
+<?php require __DIR__ . '/../includes/admin/layout_bottom.php'; ?>

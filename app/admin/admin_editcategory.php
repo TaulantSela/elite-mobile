@@ -3,84 +3,78 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/admin_init.php';
 
-$categoryId = isset($_GET['edit_cat']) ? (int) $_GET['edit_cat'] : 0;
-$categoryTitle = '';
-$error = '';
+$errors = [];
+$success = '';
+$categoryId = (int) ($_GET['edit_cat'] ?? $_POST['categoryid'] ?? 0);
 
 if ($categoryId <= 0) {
     header('Location: admin_categories.php');
     exit;
 }
 
-$selectStatement = mysqli_prepare($conn, 'SELECT categoryname FROM category WHERE categoryid = ?');
-
-if ($selectStatement && mysqli_stmt_bind_param($selectStatement, 'i', $categoryId) && mysqli_stmt_execute($selectStatement)) {
-    $result = mysqli_stmt_get_result($selectStatement);
-    $row = $result ? mysqli_fetch_assoc($result) : null;
-
-    if ($row) {
-        $categoryTitle = $row['categoryname'];
-    } else {
-        mysqli_stmt_close($selectStatement);
-        header('Location: admin_categories.php');
-        exit;
-    }
-
-    mysqli_free_result($result);
-    mysqli_stmt_close($selectStatement);
-} else {
-    if ($selectStatement) {
-        mysqli_stmt_close($selectStatement);
-    }
-    header('Location: admin_categories.php?error=not_found');
-    exit;
-}
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_cat'])) {
-    $newCategoryTitle = trim($_POST['new_cat'] ?? '');
+    $name = trim($_POST['new_cat'] ?? '');
 
-    if ($newCategoryTitle === '') {
-        $error = 'Category name cannot be empty.';
+    if ($name === '') {
+        $errors[] = 'Category name is required.';
     } else {
-        $updateStatement = mysqli_prepare($conn, 'UPDATE category SET categoryname = ? WHERE categoryid = ?');
-
-        if ($updateStatement && mysqli_stmt_bind_param($updateStatement, 'si', $newCategoryTitle, $categoryId) && mysqli_stmt_execute($updateStatement)) {
-            mysqli_stmt_close($updateStatement);
-            header('Location: admin_categories.php');
-            exit;
+        $statement = mysqli_prepare($conn, 'UPDATE category SET categoryname = ? WHERE categoryid = ?');
+        if ($statement) {
+            mysqli_stmt_bind_param($statement, 'si', $name, $categoryId);
+            if (mysqli_stmt_execute($statement)) {
+                $success = 'Category updated successfully.';
+            } else {
+                $errors[] = 'Database error while updating the category.';
+            }
+            mysqli_stmt_close($statement);
+        } else {
+            $errors[] = 'Database error while preparing the statement.';
         }
-
-        if ($updateStatement) {
-            mysqli_stmt_close($updateStatement);
-        }
-
-        $error = 'Unable to update category. Please try again.';
     }
 }
+
+$statement = mysqli_prepare($conn, 'SELECT categoryid, categoryname FROM category WHERE categoryid = ? LIMIT 1');
+mysqli_stmt_bind_param($statement, 'i', $categoryId);
+mysqli_stmt_execute($statement);
+$category = mysqli_fetch_assoc(mysqli_stmt_get_result($statement)) ?: null;
+mysqli_stmt_close($statement);
+
+$e = static fn (string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8');
+$adminTitle = 'Edit category';
+$adminActive = 'categories';
+require __DIR__ . '/../includes/admin/layout_top.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<?php require_once __DIR__ . '/../includes/admin/head.html'; ?>
-<body class="fixed-nav sticky-footer bg-dark" id="page-top">
-<?php require_once __DIR__ . '/../includes/admin/header.html'; ?>
-  <div class="content-wrapper">
-    <div class="container-fluid">
-      <!-- Breadcrumbs-->
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item">Edit</li>
-        <li class="breadcrumb-item active">Category</li>
-      </ol>
-  <form action="" method="post" style="padding:80px;" autocomplete="off">
-<b>Update Category:</b>
-<input type="text" name="new_cat" value="<?php echo htmlspecialchars($categoryTitle, ENT_QUOTES, 'UTF-8'); ?>" required />
-<input type="submit" name="update_cat" value="Update Category" />
-<?php if ($error !== ''): ?>
-    <p class="text-danger" style="margin-top: 15px;"><?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?></p>
-<?php endif; ?>
-</form>
+
+<?php if ($category === null): ?>
+    <div class="admin-card"><div class="admin-card-body"><div class="a-empty"><i class="fa-solid fa-triangle-exclamation"></i> Category not found. <a href="<?php echo $e(elite_asset('admin/admin_categories.php')); ?>">Back</a></div></div></div>
+<?php else: ?>
+    <div class="admin-card" style="max-width:560px;">
+        <div class="admin-card-head">
+            <div>
+                <h2>Edit category</h2>
+                <p><?php echo $e($category['categoryname']); ?></p>
+            </div>
+            <a class="abtn abtn-ghost" href="<?php echo $e(elite_asset('admin/admin_categories.php')); ?>"><i class="fa-solid fa-arrow-left"></i> Back</a>
+        </div>
+        <div class="admin-card-body">
+            <?php if ($errors): ?>
+                <div class="a-alert error"><i class="fa-solid fa-circle-exclamation"></i>
+                    <ul><?php foreach ($errors as $err): ?><li><?php echo $e($err); ?></li><?php endforeach; ?></ul>
+                </div>
+            <?php endif; ?>
+            <?php if ($success): ?>
+                <div class="a-alert success"><i class="fa-solid fa-circle-check"></i> <?php echo $e($success); ?></div>
+            <?php endif; ?>
+            <form class="admin-form" action="admin_editcategory.php" method="post">
+                <input type="hidden" name="categoryid" value="<?php echo (int) $category['categoryid']; ?>">
+                <div class="field">
+                    <label for="new_cat">Category name</label>
+                    <input type="text" id="new_cat" name="new_cat" value="<?php echo $e($category['categoryname']); ?>" required>
+                </div>
+                <button type="submit" name="update_cat" class="abtn abtn-grad"><i class="fa-solid fa-floppy-disk"></i> Save changes</button>
+            </form>
+        </div>
     </div>
-      <?php require_once __DIR__ . '/../includes/admin/footer.html'; ?>
-      <?php require_once __DIR__ . '/../includes/admin/scripts.html'; ?>
-  </div>
-</body>
-</html>
+<?php endif; ?>
+
+<?php require __DIR__ . '/../includes/admin/layout_bottom.php'; ?>

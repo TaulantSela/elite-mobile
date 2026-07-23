@@ -1,89 +1,127 @@
-<!DOCTYPE html>
 <?php
-session_start();
-if (!isset($_SESSION["username"])) {
-  header('Location: ../LoginForm.php');
-  exit;
+declare(strict_types=1);
+
+require_once __DIR__ . '/admin_init.php';
+require_once __DIR__ . '/../includes/functions.php';
+
+$categories = fetchAllCategories();
+$errors = [];
+$success = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['insertpro'])) {
+    $name = trim($_POST['productname'] ?? '');
+    $categoryId = (int) ($_POST['categoryid'] ?? 0);
+    $priceInput = preg_replace('/[^0-9]/', '', $_POST['price'] ?? '');
+    $price = $priceInput !== '' ? (int) $priceInput : 0;
+    $info = trim($_POST['info'] ?? '');
+
+    if ($name === '') {
+        $errors[] = 'Product name is required.';
+    }
+    if ($categoryId <= 0) {
+        $errors[] = 'Please select a category.';
+    }
+    if ($price <= 0) {
+        $errors[] = 'Please enter a valid price in MKD.';
+    }
+
+    $imagePath = '';
+    $imageProvided = isset($_FILES['image']) && is_uploaded_file($_FILES['image']['tmp_name']);
+    $extension = '';
+    if ($imageProvided) {
+        $extension = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+        if (!in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true)) {
+            $errors[] = 'Only JPG, PNG, or WEBP images are allowed.';
+        } elseif ($_FILES['image']['size'] > 4 * 1024 * 1024) {
+            $errors[] = 'Image size must be under 4MB.';
+        }
+    } else {
+        $errors[] = 'Please upload a primary product image.';
+    }
+
+    if (!$errors) {
+        $slug = trim(preg_replace('/[^a-z0-9]+/i', '-', strtolower($name)), '-') ?: 'product';
+        $fileName = $slug . '-' . time() . '.' . $extension;
+        $uploadsDir = __DIR__ . '/../img/products';
+        if (!is_dir($uploadsDir)) {
+            @mkdir($uploadsDir, 0755, true);
+        }
+        if (!@move_uploaded_file($_FILES['image']['tmp_name'], $uploadsDir . '/' . $fileName)) {
+            $errors[] = 'Could not store the image (uploads are not persisted on serverless hosting).';
+        } else {
+            $imagePath = 'products/' . $fileName;
+        }
+    }
+
+    if (!$errors) {
+        $statement = mysqli_prepare($conn, 'INSERT INTO product (productname, categoryid, price, image, info, paid) VALUES (?, ?, ?, ?, ?, 0)');
+        if ($statement) {
+            mysqli_stmt_bind_param($statement, 'siiss', $name, $categoryId, $price, $imagePath, $info);
+            if (mysqli_stmt_execute($statement)) {
+                $success = 'Product "' . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . '" has been added.';
+            } else {
+                $errors[] = 'Database error while inserting the product.';
+            }
+            mysqli_stmt_close($statement);
+        } else {
+            $errors[] = 'Database error while preparing the statement.';
+        }
+    }
 }
-else {
-    include("../includes/db_connection.php");
+
+$e = static fn (string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8');
+$adminTitle = 'Add product';
+$adminActive = 'add';
+require __DIR__ . '/../includes/admin/layout_top.php';
 ?>
-<html lang="en">
-<?php include("../includes/admin/head.html")?>
-<body class="fixed-nav sticky-footer bg-dark" id="page-top">
-<?php include("../includes/admin/header.html")?>
-  <div class="content-wrapper">
-    <div class="container-fluid">
-      <!-- Breadcrumbs-->
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item">Insert</li>
-        <li class="breadcrumb-item active">ADD NEW PRODUCT</li>
-      </ol>
-  <form action="admin_insertproduct.php" method="post" enctype="multipart/form-data">
-		<table align="center" width="795" border="0" bgcolor="white" cellpadding ="2px">
-			<tr align="center">
-				<td colspan="7"><h2>Insert New Product Here</h2></td>
-			</tr>
-			<tr>
-				<td align="right"><b>Product Name:</b></td>
-				<td><input type="text" name="productname" size="60" required/></td>
-			</tr>
-			<tr>
-				<td align="right"><b>Product Category:</b></td>
-				<td>
-				<select name="categoryid" >
-					<option>Select a Category</option>
-					<?php
-		$get_cats = "select * from category";
-		$resultcats = mysqli_query($conn, $get_cats);
-		while ($row_cats=mysqli_fetch_array($resultcats))
-        {
-            $cat_id = $row_cats['categoryid'];
-		    $cat_name = $row_cats['categoryname'];
-		    echo "<option value='$cat_id'>$cat_name</option>";
-	    }
-?>
-</select>
-		    </td>
-		  </tr>
-    	<tr>
-        <td align="right"><b>Product Price:</b></td>
-        <td><input type="text" name="price" required/></td>
-      </tr>
-			<tr>
-				<td align="right"><b>Product Image:</b></td>
-				<td><input type="file" name="image" /></td>
-			</tr>
-			<tr>
-				<td align="right"><b>Product Info:</b></td>
-				<td><textarea name="info" cols="30" rows="3"></textarea></td>
-			</tr>
-			<tr align="center">
-				<td colspan="7"><input type="submit" name="insertpro" value="Insert Product Now"/></td>
-			</tr>
-		</table>
-	</form>
-<?php
-	if(isset($_POST['insertpro'])){
-		$product_title = $_POST['productname'];
-		$product_cat= $_POST['categoryid'];
-		$product_price = $_POST['price'];
-		$product_info = $_POST['info'];
-		$product_image = $_FILES['image']['name'];
-		$product_image_tmp = $_FILES['image']['tmp_name'];
-		move_uploaded_file($product_image_tmp,"../img/$product_image");
-		$insert_product ="insert into product (`productname`, `categoryid`, `price`, `image`, `info`) values ('$product_title','$product_cat','$product_price', '$product_image','$product_info')";
-		$insert_pro = mysqli_query($conn, $insert_product);
-		if($insert_pro){
-		echo "<script>alert('Product Has been inserted!')</script>";
-		echo "<script>window.open('admin_insertproduct.php','_self')</script>";
-		}
-	}
-?>
+
+<div class="admin-card" style="max-width:720px;">
+    <div class="admin-card-head">
+        <div>
+            <h2>Add a new product</h2>
+            <p>Publish a device to the storefront catalog.</p>
+        </div>
+        <a class="abtn abtn-ghost" href="<?php echo $e(elite_asset('admin/admin_products.php')); ?>"><i class="fa-solid fa-arrow-left"></i> Back to products</a>
     </div>
-      <?php include ("../includes/admin/footer.html")?>
-      <?php include ("../includes/admin/scripts.html")?>
-  </div>
-</body>
-</html>
-<?php } ?>
+    <div class="admin-card-body">
+        <?php if ($errors): ?>
+            <div class="a-alert error"><i class="fa-solid fa-circle-exclamation"></i>
+                <ul><?php foreach ($errors as $err): ?><li><?php echo $e($err); ?></li><?php endforeach; ?></ul>
+            </div>
+        <?php endif; ?>
+        <?php if ($success): ?>
+            <div class="a-alert success"><i class="fa-solid fa-circle-check"></i> <?php echo $success; ?></div>
+        <?php endif; ?>
+        <form class="admin-form" action="admin_insertproduct.php" method="post" enctype="multipart/form-data">
+            <div class="field">
+                <label for="productname">Product name</label>
+                <input type="text" id="productname" name="productname" placeholder="e.g. iPhone 17 Pro Max" required>
+            </div>
+            <div class="field">
+                <label for="categoryid">Category</label>
+                <select id="categoryid" name="categoryid" required>
+                    <option value="">Select a category</option>
+                    <?php foreach ($categories as $category): ?>
+                        <option value="<?php echo (int) $category['id']; ?>"><?php echo $e($category['name']); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="field">
+                <label for="price">Price (MKD)</label>
+                <input type="text" id="price" name="price" placeholder="e.g. 109990" required>
+            </div>
+            <div class="field">
+                <label for="image">Primary image</label>
+                <input type="file" id="image" name="image" accept="image/*" required>
+                <p class="hint">JPG, PNG, or WEBP — max 4MB.</p>
+            </div>
+            <div class="field">
+                <label for="info">Key highlights (HTML allowed)</label>
+                <textarea id="info" name="info" placeholder="<p><strong>Display</strong>: 6.9&quot; OLED, 120Hz</p>"></textarea>
+            </div>
+            <button type="submit" name="insertpro" class="abtn abtn-grad"><i class="fa-solid fa-plus"></i> Insert product</button>
+        </form>
+    </div>
+</div>
+
+<?php require __DIR__ . '/../includes/admin/layout_bottom.php'; ?>
