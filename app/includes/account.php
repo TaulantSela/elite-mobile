@@ -14,8 +14,9 @@ declare(strict_types=1);
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/mailer.php';
 require_once __DIR__ . '/url_helpers.php';
+require_once __DIR__ . '/throttle.php';
 
-const ELITE_MIN_PASSWORD_LENGTH = 12;
+const ELITE_MIN_PASSWORD_LENGTH = 8;
 const ELITE_RESET_TTL_MINUTES = 30;
 const ELITE_RESET_MAX_PER_HOUR = 3;
 
@@ -45,6 +46,9 @@ function elite_set_password(mysqli $conn, string $username, string $password): v
     mysqli_stmt_bind_param($statement, 'ss', $hash, $username);
     mysqli_stmt_execute($statement);
     mysqli_stmt_close($statement);
+
+    // A new password clears the sign-in lock, so a reset always gets the owner back in.
+    elite_clear_login_failures($conn, $username);
 }
 
 /** @return array{username:string, email:?string, has_recovery_code:bool}|null */

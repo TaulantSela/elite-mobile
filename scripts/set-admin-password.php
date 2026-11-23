@@ -17,7 +17,7 @@ if (PHP_SAPI !== 'cli') {
 }
 
 require_once __DIR__ . '/../app/includes/database.php';
-require_once __DIR__ . '/../app/includes/auth.php';
+require_once __DIR__ . '/../app/includes/account.php';
 
 $username = trim($argv[1] ?? '');
 
@@ -46,8 +46,8 @@ $readHidden = static function (string $prompt): string {
 
 $password = $readHidden("New password for {$username}: ");
 
-if (strlen($password) < 12) {
-    fwrite(STDERR, "Use at least 12 characters.\n");
+if (strlen($password) < ELITE_MIN_PASSWORD_LENGTH) {
+    fwrite(STDERR, 'Use at least ' . ELITE_MIN_PASSWORD_LENGTH . " characters.\n");
     exit(1);
 }
 
@@ -70,5 +70,6 @@ $statement = mysqli_prepare(
 mysqli_stmt_bind_param($statement, 'ss', $username, $hash);
 mysqli_stmt_execute($statement);
 mysqli_stmt_close($statement);
+elite_clear_login_failures($connection, $username);
 
 fwrite(STDOUT, "Password set for {$username} on " . DB_HOST . '/' . DB_NAME . ".\n");

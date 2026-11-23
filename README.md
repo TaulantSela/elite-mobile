@@ -39,6 +39,9 @@ the whole app end to end in an afternoon.
 - **Forgot password?** on the sign-in page emails a reset link to the recovery email (single
   use, expires in 30 minutes, at most three an hour), or resets with the recovery code, which
   is then replaced. Neither path reveals whether an account exists.
+- **Sign-in lockout**: 5 failed attempts for a username within 15 minutes lock it for 15 minutes,
+  and 20 failures from one IP lock that IP out of sign-in and recovery codes. A password reset
+  clears the lock. Only a hash of the IP is stored.
 - **Passwords** are stored as bcrypt hashes, recovery codes too, and reset tokens as SHA-256.
   Any plaintext password left in the database is accepted once and re-hashed on that login, and
   the session id is regenerated on sign-in.
@@ -55,8 +58,8 @@ the whole app end to end in an afternoon.
    uses Bootstrap 3 and jQuery plus the custom stylesheet `styles/store.css`; the admin panel has
    its own layout and `styles/admin.css`.
 3. **Database.** `app/includes/database.php` opens one shared `mysqli` connection from the `DB_*`
-   environment variables, with optional TLS for managed MySQL hosts. The schema has five tables:
-   `category`, `product`, `services`, `users` and `password_resets`. Changes to an existing
+   environment variables, with optional TLS for managed MySQL hosts. The schema has six tables:
+   `category`, `product`, `services`, `users`, `password_resets` and `login_attempts`. Changes to an existing
    database live in `migrations/`; `phpproject.sql` already includes them.
 4. **Images.** Seed images are filenames served from `img/`. When `BLOB_READ_WRITE_TOKEN` is set,
    uploaded product images go to **Vercel Blob** through its HTTP API (`app/includes/blob.php`)
@@ -107,7 +110,7 @@ or MariaDB 10+.
    php -S localhost:8000
    ```
 
-4. The seed data ships no usable admin password. Set one (12+ characters; it uses the same
+4. The seed data ships no usable admin password. Set one (8+ characters; it uses the same
    `DB_*` variables, so check which database they point at):
 
    ```bash
