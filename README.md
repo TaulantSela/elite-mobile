@@ -1,69 +1,119 @@
-# Elite Mobile
+<p align="center">
+  <img src="img/elite-mobile_logo.png" alt="Elite Mobile logo" width="140" />
+</p>
 
-Elite Mobile is a capstone web application for a premium mobile retail and repair studio. It showcases a product catalogue with rich merchandising content, a service booking flow, and an admin dashboard for managing inventory, categories, and highlighted repair services. The project is written in plain PHP and designed to run on a traditional LAMP stack or the PHP development server.
+# 📱🔧 Elite Mobile
+
+A demo storefront and admin panel for a mobile phone shop and repair studio, written in plain PHP
+and MySQL. It started as my university capstone project and has since been redesigned and
+deployed.
+
+**▶ [Browse the live demo →](https://elite-mobile.vercel.app)** — running on Vercel with the
+community `vercel-php` runtime.
+
+There is no framework and no Composer: just PHP 8, `mysqli` and shared includes, so you can read
+the whole app end to end in an afternoon.
 
 ## Features
-- Responsive storefront with featured products, latest arrivals, and service highlights
-- Product detail views with PayPal sandbox checkout demo integration
-- Search-by-category browsing with sorting controls
-- Service landing page for booking repair packages and enterprise consultations
-- Admin dashboard to insert, edit, and remove categories and products
-- Session-based authentication for administrators (sample credentials provided)
 
-## Tech Stack
-- PHP 8.0+ with mysqli extension
-- MySQL / MariaDB (schema export in `phpproject.sql`)
-- HTML5, Bootstrap 3, custom CSS, and Font Awesome assets
+**Storefront**
 
-## Prerequisites
-- PHP 8.0 or newer with mysqli enabled (tested with PHP 8.2)
-- MySQL 5.7+ or MariaDB 10+
-- Composer is **not** required
-- Optional: Apache/Nginx with PHP-FPM if you prefer a full web server stack
+- **Home**: shop-by-brand tiles, fresh arrivals, "Pro picks" (the priciest phones), featured
+  repair services, and a bulk-order call to action.
+- **Catalogue** (`products.php`): brand filter chips with product counts, search, and sorting by
+  newest, price (high to low, low to high) or name.
+- **Product page** (`description.php`): specs, price in denars, a PayPal **sandbox** checkout
+  button, and links to preorder or book a repair. A paid product shows as *Reserved*.
+- **Services** (`service.php`): repair services from the database with price and duration.
+  "Book a repair" leads to the contact form.
+- **Contact** and **About** pages. The contact form sends through PHP's `mail()`.
 
-## Getting Started
-1. Clone or download the repository into your web root or a working directory.
-2. Create a MySQL database (default name: `phpproject`).
-3. Import the schema and seed data:
+**Admin** (sign in at `LoginForm.php`)
 
-```bash
-mysql -u root -p phpproject < phpproject.sql
-```
+- **Dashboard**: totals for products, categories and services, the average price, a quick-add
+  product form, and the latest products.
+- **Products**: add (with image upload), edit and delete.
+- **Categories** (brands): add, edit and delete.
+- **Passwords** are stored as bcrypt hashes. Any plaintext password left in the database is
+  accepted once and re-hashed on that login, and the session id is regenerated on sign-in.
 
-4. Configure database credentials:
-	 - By default, the app reads connection settings from the constants defined in [app/includes/config.php](app/includes/config.php).
-	 - Override any value by exporting environment variables (`DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_PORT`, optionally `DB_SOCKET`).
+## How it works
 
-## Running the Application
-- **Using the PHP development server** (recommended for quick testing):
+1. **Routing.** On Vercel, `vercel.json` sends asset folders (`img/`, `styles/`, `css/`, `js/`,
+   `vendor/`, `bootstrap-3.3.7-dist/`) straight to static files and every other path to
+   `api/index.php`. That front controller maps `/products.php` to `app/products.php` (`/` goes to
+   `home.php`), refuses anything outside `app/` or anything that isn't a `.php` file, and then
+   runs the page.
+2. **Pages** in `app/` are server-rendered PHP that pull in shared partials from `app/includes/`
+   (header, footer, head) and query helpers from `app/includes/functions.php`. The storefront
+   uses Bootstrap 3 and jQuery plus the custom stylesheet `styles/store.css`; the admin panel has
+   its own layout and `styles/admin.css`.
+3. **Database.** `app/includes/database.php` opens one shared `mysqli` connection from the `DB_*`
+   environment variables, with optional TLS for managed MySQL hosts. The schema has four tables:
+   `category`, `product`, `services` and `users`.
+4. **Images.** Seed images are filenames served from `img/`. When `BLOB_READ_WRITE_TOKEN` is set,
+   uploaded product images go to **Vercel Blob** through its HTTP API (`app/includes/blob.php`)
+   and the public URL is saved on the product, because Vercel's filesystem is read-only. Without
+   a token, uploads are written to `img/products/` on disk.
 
-```bash
-php -S localhost:8000 -t app
-```
+## Run locally
 
-Then open http://localhost:8000/home.php in your browser.
+You need PHP 8.0+ with the `mysqli` extension (`curl` too if you want Blob uploads) and MySQL 5.7+
+or MariaDB 10+.
 
-- **Using Apache/Nginx**: point your document root to the `app/` directory and ensure PHP can read the configuration and `img`, `styles`, `vendor`, and `bootstrap-3.3.7-dist` assets.
+1. Create the database and load the schema and seed data:
 
-## Admin Access
-- Navigate to http://localhost:8000/LoginForm.php (or the equivalent route in your server configuration).
-- Sample credentials from the seed data:
-	- Username: `taulant`
-	- Password: `taulant`
-	- Alternate account: `elijon` / `elijon123`
+   ```bash
+   mysql -u root -p -e "CREATE DATABASE phpproject"
+   mysql -u root -p phpproject < phpproject.sql
+   ```
 
-## Project Structure
-- [app/](app) – public PHP pages, admin tools, and includes
-- [app/includes/](app/includes) – configuration, database helpers, and shared UI components
-- [img/](img) – product imagery and branding assets
-- [styles/](styles) – custom CSS files for public pages and admin login
-- [vendor/](vendor) and [bootstrap-3.3.7-dist/](bootstrap-3.3.7-dist) – third-party assets
-- [phpproject.sql](phpproject.sql) – database schema and seed data
+2. Point the app at it. Defaults live in `app/includes/config.php` (`localhost`, `root`, empty
+   password, `phpproject`, port `3306`); override any of them with environment variables:
 
-## Development Notes
-- PHP strict types and union types are enabled, so ensure your runtime is PHP 8.0+.
-- PayPal integration targets the sandbox environment; update the form values in [app/includes/functions.php](app/includes/functions.php) before going live.
-- For production deployment, secure admin credentials (hash passwords, enforce HTTPS, and rotate PayPal sandbox keys).
+   | Variable | Purpose |
+   |----------|---------|
+   | `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` | Connection settings |
+   | `DB_SOCKET` | Optional Unix socket |
+   | `DB_SSL` | `1` to connect over TLS (managed databases) |
+   | `DB_SSL_CA`, `DB_SSL_CERT`, `DB_SSL_KEY` | Optional TLS certificate paths |
+   | `DB_CONNECT_TIMEOUT`, `DB_READ_TIMEOUT` | Seconds (defaults: 10 and 30) |
+   | `BLOB_READ_WRITE_TOKEN` | Optional: store uploaded images in Vercel Blob |
 
-## License
-This project was created as an academic capstone. Adapt and reuse for learning purposes.
+3. Start PHP's built-in server **from the repo root** and open
+   <http://localhost:8000/app/home.php>:
+
+   ```bash
+   php -S localhost:8000
+   ```
+
+4. To use the admin panel, set a password for one of the seeded users (`taulant` or `elijon`).
+   A plaintext value is accepted once and hashed on first login:
+
+   ```bash
+   mysql -u root -p phpproject -e "UPDATE users SET password = 'choose-a-password' WHERE username = 'taulant'"
+   ```
+
+   Then sign in at <http://localhost:8000/app/LoginForm.php>.
+
+> [!NOTE]
+> The pages are written for the Vercel route table: PHP pages at the site root, assets from the
+> repo root. PHP's built-in server can't do both, so locally the header logo, the home-page hero
+> image and the admin sidebar links (root paths like `/admin/admin_products.php`) don't resolve.
+> Open admin pages directly under `/app/`, e.g. `/app/admin/admin_products.php`.
+
+## Deploy
+
+The repo deploys to Vercel as-is: `vercel.json` pins the `vercel-php@0.9.0` runtime for
+`api/**/*.php` and defines the routes. Set the `DB_*` variables (and `DB_SSL=1` for a managed
+MySQL) plus `BLOB_READ_WRITE_TOKEN` in the Vercel project.
+
+## Known limitations
+
+- **PayPal is a sandbox demo.** The return and cancel URLs in `renderPaypalForm()`
+  (`app/includes/functions.php`) and the redirect in `app/includes/paypal.php` are hard-coded to
+  `http://localhost/sela/`, so the post-payment redirect doesn't work as deployed.
+- **The contact form** needs a working mail transport for PHP's `mail()`.
+- **Editing a product** changes its details, not its image.
+- **Repair services** are seeded in `phpproject.sql`. The admin panel shows their count but has
+  no page to edit them.
