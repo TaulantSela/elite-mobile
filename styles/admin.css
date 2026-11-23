@@ -197,3 +197,22 @@ body.admin a { text-decoration: none; color: inherit; }
 .recovery-code-box span { display: block; font-size: 0.8rem; font-weight: 600; color: var(--a-soft); text-transform: uppercase; letter-spacing: 0.04em; }
 .recovery-code-box code { display: block; font-size: 1.15rem; font-weight: 700; letter-spacing: 0.06em; margin: 0.35rem 0; color: var(--a-ink); user-select: all; word-break: break-all; }
 .recovery-code-box small { color: var(--a-soft); font-size: 0.82rem; line-height: 1.4; }
+
+/* Account page */
+.account-page { max-width: 1100px; }
+.account-page > .a-alert, .account-page > .recovery-code-box { margin-bottom: 1.25rem; }
+.account-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+.account-page .admin-card-head h2 i { color: var(--a-blue); margin-right: 0.35rem; font-size: 0.95em; }
+.confirm-row { display: flex; align-items: flex-end; gap: 0.75rem; }
+.confirm-row .field { flex: 1; margin-bottom: 0; }
+.confirm-row .abtn { flex: none; height: 44px; }
+.status-pill { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.7rem; border-radius: 999px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; flex: none; }
+.status-pill.ok { background: rgba(22,163,74,0.1); color: #15803d; }
+.status-pill.off { background: rgba(100,116,139,0.12); color: #475569; }
+@media (max-width: 900px) {
+    .account-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+    .confirm-row { flex-direction: column; align-items: stretch; }
+    .confirm-row .abtn, .account-page .admin-form > .abtn { justify-content: center; width: 100%; }
+}
