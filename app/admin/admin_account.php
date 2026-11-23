@@ -55,87 +55,106 @@ $adminActive = 'account';
 require __DIR__ . '/../includes/admin/layout_top.php';
 ?>
 
-<?php if ($errors): ?>
-    <div class="a-alert error" style="max-width:640px;"><i class="fa-solid fa-circle-exclamation"></i>
-        <ul><?php foreach ($errors as $err): ?><li><?php echo $e($err); ?></li><?php endforeach; ?></ul>
-    </div>
-<?php endif; ?>
-<?php if ($success !== ''): ?>
-    <div class="a-alert success" style="max-width:640px;"><i class="fa-solid fa-circle-check"></i> <?php echo $e($success); ?></div>
-<?php endif; ?>
-<?php if ($newCode !== null): ?>
-    <div style="max-width:640px;"><?php elite_render_recovery_code($newCode); ?></div>
-<?php endif; ?>
-
-<div class="admin-card" style="max-width:640px;">
-    <div class="admin-card-head">
-        <div>
-            <h2>Change password</h2>
-            <p>At least <?php echo ELITE_MIN_PASSWORD_LENGTH; ?> characters. Open reset links stop working.</p>
+<div class="account-page">
+    <?php if ($errors): ?>
+        <div class="a-alert error"><i class="fa-solid fa-circle-exclamation"></i>
+            <ul><?php foreach ($errors as $err): ?><li><?php echo $e($err); ?></li><?php endforeach; ?></ul>
         </div>
-    </div>
-    <div class="admin-card-body">
-        <form class="admin-form" action="admin_account.php" method="post" autocomplete="off">
-            <input type="hidden" name="action" value="password">
-            <div class="field">
-                <label for="pw-current">Current password</label>
-                <input type="password" id="pw-current" name="current" required autocomplete="current-password">
-            </div>
-            <div class="field">
-                <label for="pw-new">New password</label>
-                <input type="password" id="pw-new" name="password" required minlength="<?php echo ELITE_MIN_PASSWORD_LENGTH; ?>" autocomplete="new-password">
-            </div>
-            <div class="field">
-                <label for="pw-confirm">Repeat new password</label>
-                <input type="password" id="pw-confirm" name="confirm" required minlength="<?php echo ELITE_MIN_PASSWORD_LENGTH; ?>" autocomplete="new-password">
-            </div>
-            <button type="submit" class="abtn abtn-grad"><i class="fa-solid fa-key"></i> Change password</button>
-        </form>
-    </div>
-</div>
+    <?php endif; ?>
+    <?php if ($success !== ''): ?>
+        <div class="a-alert success"><i class="fa-solid fa-circle-check"></i> <?php echo $e($success); ?></div>
+    <?php endif; ?>
+    <?php if ($newCode !== null): ?>
+        <?php elite_render_recovery_code($newCode); ?>
+    <?php endif; ?>
 
-<div class="admin-card" style="max-width:640px;">
-    <div class="admin-card-head">
-        <div>
-            <h2>Recovery email</h2>
-            <p>Where "Forgot password?" sends reset links. <?php echo $user['email'] !== null ? 'Currently ' . $e($user['email']) . '.' : 'None set: emailed resets are off.'; ?></p>
+    <div class="admin-grid account-grid">
+        <div class="admin-card">
+            <div class="admin-card-head">
+                <div>
+                    <h2><i class="fa-solid fa-key"></i> Change password</h2>
+                    <p>At least <?php echo ELITE_MIN_PASSWORD_LENGTH; ?> characters. Any open reset links stop working.</p>
+                </div>
+            </div>
+            <div class="admin-card-body">
+                <form class="admin-form" action="admin_account.php" method="post" autocomplete="off">
+                    <input type="hidden" name="action" value="password">
+                    <div class="field">
+                        <label for="pw-current">Current password</label>
+                        <input type="password" id="pw-current" name="current" required autocomplete="current-password">
+                    </div>
+                    <div class="field">
+                        <label for="pw-new">New password</label>
+                        <input type="password" id="pw-new" name="password" required minlength="<?php echo ELITE_MIN_PASSWORD_LENGTH; ?>" autocomplete="new-password">
+                    </div>
+                    <div class="field">
+                        <label for="pw-confirm">Repeat new password</label>
+                        <input type="password" id="pw-confirm" name="confirm" required minlength="<?php echo ELITE_MIN_PASSWORD_LENGTH; ?>" autocomplete="new-password">
+                    </div>
+                    <button type="submit" class="abtn abtn-grad"><i class="fa-solid fa-key"></i> Change password</button>
+                </form>
+            </div>
         </div>
-    </div>
-    <div class="admin-card-body">
-        <form class="admin-form" action="admin_account.php" method="post" autocomplete="off">
-            <input type="hidden" name="action" value="email">
-            <div class="field">
-                <label for="em-email">Email</label>
-                <input type="email" id="em-email" name="email" value="<?php echo $e((string) $user['email']); ?>" placeholder="you@example.com">
-            </div>
-            <div class="field">
-                <label for="em-current">Current password</label>
-                <input type="password" id="em-current" name="current" required autocomplete="current-password">
-            </div>
-            <button type="submit" class="abtn abtn-grad"><i class="fa-solid fa-envelope"></i> Save email</button>
-        </form>
-    </div>
-</div>
 
-<div class="admin-card" style="max-width:640px;">
-    <div class="admin-card-head">
-        <div>
-            <h2>Recovery code</h2>
-            <p><?php echo $user['has_recovery_code']
-                ? 'A recovery code is set. Generating a new one replaces it.'
-                : 'No recovery code yet. Create one so you can get in without email.'; ?></p>
-        </div>
-    </div>
-    <div class="admin-card-body">
-        <form class="admin-form" action="admin_account.php" method="post" autocomplete="off">
-            <input type="hidden" name="action" value="code">
-            <div class="field">
-                <label for="rc-current">Current password</label>
-                <input type="password" id="rc-current" name="current" required autocomplete="current-password">
+        <div class="admin-grid">
+            <div class="admin-card">
+                <div class="admin-card-head">
+                    <div>
+                        <h2><i class="fa-solid fa-envelope"></i> Recovery email</h2>
+                        <p>Where "Forgot password?" sends reset links.</p>
+                    </div>
+                    <?php if ($user['email'] !== null): ?>
+                        <span class="status-pill ok"><i class="fa-solid fa-circle-check"></i> On</span>
+                    <?php else: ?>
+                        <span class="status-pill off"><i class="fa-solid fa-circle-minus"></i> Off</span>
+                    <?php endif; ?>
+                </div>
+                <div class="admin-card-body">
+                    <form class="admin-form" action="admin_account.php" method="post" autocomplete="off">
+                        <input type="hidden" name="action" value="email">
+                        <div class="field">
+                            <label for="em-email">Email</label>
+                            <input type="email" id="em-email" name="email" value="<?php echo $e((string) $user['email']); ?>" placeholder="you@example.com">
+                            <div class="hint">Leave empty to turn emailed resets off.</div>
+                        </div>
+                        <div class="confirm-row">
+                            <div class="field">
+                                <label for="em-current">Current password</label>
+                                <input type="password" id="em-current" name="current" required autocomplete="current-password">
+                            </div>
+                            <button type="submit" class="abtn abtn-grad"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <button type="submit" class="abtn abtn-grad"><i class="fa-solid fa-shield-halved"></i>
-                <?php echo $user['has_recovery_code'] ? 'Generate a new recovery code' : 'Create a recovery code'; ?></button>
-        </form>
+
+            <div class="admin-card">
+                <div class="admin-card-head">
+                    <div>
+                        <h2><i class="fa-solid fa-shield-halved"></i> Recovery code</h2>
+                        <p>Resets your password without email. Shown once when created.</p>
+                    </div>
+                    <?php if ($user['has_recovery_code']): ?>
+                        <span class="status-pill ok"><i class="fa-solid fa-circle-check"></i> Set</span>
+                    <?php else: ?>
+                        <span class="status-pill off"><i class="fa-solid fa-circle-minus"></i> Not set</span>
+                    <?php endif; ?>
+                </div>
+                <div class="admin-card-body">
+                    <form class="admin-form" action="admin_account.php" method="post" autocomplete="off">
+                        <input type="hidden" name="action" value="code">
+                        <div class="confirm-row">
+                            <div class="field">
+                                <label for="rc-current">Current password</label>
+                                <input type="password" id="rc-current" name="current" required autocomplete="current-password">
+                            </div>
+                            <button type="submit" class="abtn abtn-grad"><i class="fa-solid fa-rotate"></i>
+                                <?php echo $user['has_recovery_code'] ? 'Replace code' : 'Create code'; ?></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
