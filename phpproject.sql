@@ -124,10 +124,10 @@ CREATE TABLE `users` (
 --
 
 -- Passwords are bcrypt hashes (PHP password_hash / PASSWORD_DEFAULT).
--- Dev credentials: elijon / elijon123  and  taulant / taulant
+-- No usable passwords ship here: set one with `php scripts/set-admin-password.php <username>`.
 INSERT INTO `users` (`username`, `password`) VALUES
-('elijon', '$2y$12$N614K64naAd6XnleNh6e3e487xZWOkk0LhYiepupNE4eJHeMoUI1.'),
-('taulant', '$2y$12$SnYTO8.gEeiTPMoYbXzKe.fnXtKSpnXDIj1ZqOz.cKDRHMwEkOYKm');
+('elijon', '$2y$12$S9JD72hnoy8YE3buWiuBguHYz8u.gvuqQ0WnOHxFQ6SaEjdrTndQu'),
+('taulant', '$2y$12$Wiw7aSwx13OAT/6JqzteYeaNRuqbLIS.IWq9r0o5oq8upCL.eIK0q');
 
 --
 -- Indexes for dumped tables

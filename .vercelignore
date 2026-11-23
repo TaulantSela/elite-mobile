@@ -2,3 +2,4 @@ Dockerfile
 phpproject.sql
 screenshot/
 .env*
+scripts/
