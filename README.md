@@ -79,6 +79,7 @@ or MariaDB 10+.
    | `DB_SSL_CA`, `DB_SSL_CERT`, `DB_SSL_KEY` | Optional TLS certificate paths |
    | `DB_CONNECT_TIMEOUT`, `DB_READ_TIMEOUT` | Seconds (defaults: 10 and 30) |
    | `BLOB_READ_WRITE_TOKEN` | Optional: store uploaded images in Vercel Blob |
+   | `PAYPAL_PDT_TOKEN` | Optional: PayPal sandbox PDT identity token, needed to mark products as paid |
 
 3. Start PHP's built-in server **from the repo root** and open
    <http://localhost:8000/app/home.php>:
@@ -87,11 +88,11 @@ or MariaDB 10+.
    php -S localhost:8000
    ```
 
-4. To use the admin panel, set a password for one of the seeded users (`taulant` or `elijon`).
-   A plaintext value is accepted once and hashed on first login:
+4. The seed data ships no usable admin password. Set one (12+ characters; it uses the same
+   `DB_*` variables, so check which database they point at):
 
    ```bash
-   mysql -u root -p phpproject -e "UPDATE users SET password = 'choose-a-password' WHERE username = 'taulant'"
+   php scripts/set-admin-password.php taulant
    ```
 
    Then sign in at <http://localhost:8000/app/LoginForm.php>.
@@ -106,13 +107,14 @@ or MariaDB 10+.
 
 The repo deploys to Vercel as-is: `vercel.json` pins the `vercel-php@0.9.0` runtime for
 `api/**/*.php` and defines the routes. Set the `DB_*` variables (and `DB_SSL=1` for a managed
-MySQL) plus `BLOB_READ_WRITE_TOKEN` in the Vercel project.
+MySQL) plus `BLOB_READ_WRITE_TOKEN` (and optionally `PAYPAL_PDT_TOKEN`) in the Vercel project.
+Set the admin passwords with `scripts/set-admin-password.php` against the production database.
 
 ## Known limitations
 
-- **PayPal is a sandbox demo.** The return and cancel URLs in `renderPaypalForm()`
-  (`app/includes/functions.php`) and the redirect in `app/includes/paypal.php` are hard-coded to
-  `http://localhost/sela/`, so the post-payment redirect doesn't work as deployed.
+- **PayPal is a sandbox demo.** Checkout goes to PayPal's sandbox. A product is marked as
+  paid (*Reserved*) only after PayPal confirms the transaction through PDT, which needs the
+  sandbox merchant's `PAYPAL_PDT_TOKEN`; without it, nothing is ever marked as paid.
 - **The contact form** needs a working mail transport for PHP's `mail()`.
 - **Editing a product** changes its details, not its image.
 - **Repair services** are seeded in `phpproject.sql`. The admin panel shows their count but has
