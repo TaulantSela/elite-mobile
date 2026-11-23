@@ -39,7 +39,7 @@ elite_auth_page_open(
             <div class="login-error"><i class="fa-solid fa-circle-exclamation"></i>
                 This reset link is invalid, already used or expired.
             </div>
-            <p class="login-alt"><a href="forgot-password.php">Request a new link</a> or <a href="recover.php">use a recovery code</a>.</p>
+            <p class="login-alt"><a href="forgot-password.php">Request a new link</a>.</p>
         <?php else: ?>
             <?php if ($error !== ''): ?>
                 <div class="login-error"><i class="fa-solid fa-circle-exclamation"></i> <?php echo elite_h($error); ?></div>

@@ -9,7 +9,6 @@ require_once __DIR__ . '/../includes/auth_page.php';
 $username = (string) $_SESSION['username'];
 $errors = [];
 $success = '';
-$newCode = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'cancel_email') {
     // Cancelling a pending change only keeps the current email, so it needs no password.
@@ -46,13 +45,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'cance
         } else {
             $success = "We sent a confirmation link to {$newEmail}. Your email changes when you click it.";
         }
-    } elseif ($action === 'code') {
-        $newCode = elite_new_recovery_code($conn, $username);
-        $success = 'New recovery code created. The old one no longer works.';
     }
 }
 
-$user = elite_find_user($conn, $username) ?? ['email' => '', 'email_verified' => false, 'has_recovery_code' => false, 'pending_email' => null];
+$user = elite_find_user($conn, $username) ?? ['email' => '', 'email_verified' => false, 'pending_email' => null];
 $e = 'elite_h';
 $adminTitle = 'Account';
 $adminActive = 'account';
@@ -67,9 +63,6 @@ require __DIR__ . '/../includes/admin/layout_top.php';
     <?php endif; ?>
     <?php if ($success !== ''): ?>
         <div class="a-alert success"><i class="fa-solid fa-circle-check"></i> <?php echo $e($success); ?></div>
-    <?php endif; ?>
-    <?php if ($newCode !== null): ?>
-        <?php elite_render_recovery_code($newCode); ?>
     <?php endif; ?>
 
     <div class="admin-grid account-grid">
@@ -137,33 +130,6 @@ require __DIR__ . '/../includes/admin/layout_top.php';
                                 <input type="password" id="em-current" name="current" required autocomplete="current-password">
                             </div>
                             <button type="submit" class="abtn abtn-grad"><i class="fa-solid fa-paper-plane"></i> Send link</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <div class="admin-card">
-                <div class="admin-card-head">
-                    <div>
-                        <h2><i class="fa-solid fa-shield-halved"></i> Recovery code</h2>
-                        <p>Resets your password without email. Shown once when created.</p>
-                    </div>
-                    <?php if ($user['has_recovery_code']): ?>
-                        <span class="status-pill ok"><i class="fa-solid fa-circle-check"></i> Set</span>
-                    <?php else: ?>
-                        <span class="status-pill off"><i class="fa-solid fa-circle-minus"></i> Not set</span>
-                    <?php endif; ?>
-                </div>
-                <div class="admin-card-body">
-                    <form class="admin-form" action="admin_account.php" method="post" autocomplete="off">
-                        <input type="hidden" name="action" value="code">
-                        <div class="confirm-row">
-                            <div class="field">
-                                <label for="rc-current">Current password</label>
-                                <input type="password" id="rc-current" name="current" required autocomplete="current-password">
-                            </div>
-                            <button type="submit" class="abtn abtn-grad"><i class="fa-solid fa-rotate"></i>
-                                <?php echo $user['has_recovery_code'] ? 'Replace code' : 'Create code'; ?></button>
                         </div>
                     </form>
                 </div>
