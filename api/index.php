@@ -25,6 +25,15 @@ if ($resolved === false || strpos($resolved, $appRootReal) !== 0 || !is_file($re
     return;
 }
 
+// includes/ holds partials and helpers (database, auth, uploads); none of it is a page.
+$relativePath = ltrim(substr($resolved, strlen($appRootReal)), '/');
+
+if (strncmp($relativePath, 'includes/', strlen('includes/')) === 0) {
+    http_response_code(404);
+    echo '404 Not Found';
+    return;
+}
+
 if (pathinfo($resolved, PATHINFO_EXTENSION) !== 'php') {
     http_response_code(403);
     echo '403 Forbidden';

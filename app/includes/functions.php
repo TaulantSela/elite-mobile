@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/paypal.php';
 
 function formatPrice(int|float $amount, string $suffix = ' ден'): string
 {
@@ -348,20 +349,26 @@ function getOrderColumn(): ?string
 
 function renderPaypalForm(int $productId, string $productName, float $price): void
 {
-    $amount = number_format($price * 0.019, 2, '.', '');
-    $safeName = htmlspecialchars($productName, ENT_QUOTES, 'UTF-8');
+    $esc = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+    $amount = elite_paypal_amount($price);
+    $safeName = $esc($productName);
+    $action = $esc(ELITE_PAYPAL_WEBSCR);
+    $business = $esc(ELITE_PAYPAL_BUSINESS);
+    $currency = $esc(ELITE_PAYPAL_CURRENCY);
+    $returnUrl = $esc(elite_absolute_url('paypal-return.php?item_number=' . $productId));
+    $cancelUrl = $esc(elite_absolute_url('description.php?productid=' . $productId));
 
-    echo "<form action='https://www.sandbox.paypal.com/cgi-bin/webscr' method='post'>
+    echo "<form action='{$action}' method='post'>
             <input type='hidden' name='cmd' value='_xclick'>
-            <input type='hidden' name='business' value='vlerant.saiti-facilitator@live.com'>
+            <input type='hidden' name='business' value='{$business}'>
             <input type='hidden' name='item_name' value='{$safeName}'>
             <input type='hidden' name='item_number' value='{$productId}'>
             <input type='hidden' name='amount' value='{$amount}'>
             <input type='hidden' name='no_shipping' value='0'>
-            <input type='hidden' name='return' value='http://localhost/sela/includes/paypal.php'>
-            <input type='hidden' name='cancel_return' value='http://localhost/sela/includes/paypal.php'>
+            <input type='hidden' name='return' value='{$returnUrl}'>
+            <input type='hidden' name='cancel_return' value='{$cancelUrl}'>
             <input type='hidden' name='no_note' value='1'>
-            <input type='hidden' name='currency_code' value='USD'>
+            <input type='hidden' name='currency_code' value='{$currency}'>
             <input type='hidden' name='lc' value='US'>
             <input type='image' src='https://www.paypalobjects.com/webstatic/en_US/i/buttons/checkout-logo-small.png' border='0' name='submit' alt='PayPal - The safer, easier way to pay online!'>
         </form>";

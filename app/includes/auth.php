@@ -11,6 +11,29 @@ declare(strict_types=1);
  * without downtime and no plaintext survives a first sign-in.
  */
 
+/**
+ * Hashes of the sample admin passwords that were published in this repo (in an
+ * old README and in earlier versions of phpproject.sql, once as plaintext).
+ * Whatever the database holds, a login with one of those passwords is refused:
+ * set a new one with scripts/set-admin-password.php.
+ */
+const ELITE_PUBLISHED_PASSWORD_HASHES = [
+    '$2y$12$N614K64naAd6XnleNh6e3e487xZWOkk0LhYiepupNE4eJHeMoUI1.',
+    '$2y$12$SnYTO8.gEeiTPMoYbXzKe.fnXtKSpnXDIj1ZqOz.cKDRHMwEkOYKm',
+];
+
+/** Is this one of the passwords published in the repository? */
+function elite_password_is_published(string $password): bool
+{
+    foreach (ELITE_PUBLISHED_PASSWORD_HASHES as $hash) {
+        if (password_verify($password, $hash)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 /** Does the stored value look like a modern password hash (bcrypt / argon2)? */
 function elite_password_is_hashed(string $stored): bool
 {
@@ -41,6 +64,10 @@ function elite_store_password_hash(mysqli $conn, string $username, string $plain
  */
 function elite_verify_login(mysqli $conn, string $username, string $password): bool
 {
+    if (elite_password_is_published($password)) {
+        return false;
+    }
+
     $statement = mysqli_prepare($conn, 'SELECT password FROM users WHERE username = ? LIMIT 1');
 
     if (!$statement) {
