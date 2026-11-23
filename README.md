@@ -98,6 +98,15 @@ or MariaDB 10+.
    php -S localhost:8000
    ```
 
+   PHP doesn't read `.env.local` by itself. To send real reset emails locally, load just the
+   mail settings from it, not the whole file (`vercel env pull` can put production database
+   settings there):
+
+   ```bash
+   set -a; eval "$(grep -E '^(RESEND_API_KEY|MAIL_FROM)=' .env.local)"; set +a
+   php -S localhost:8000
+   ```
+
 4. The seed data ships no usable admin password. Set one (12+ characters; it uses the same
    `DB_*` variables, so check which database they point at):
 
