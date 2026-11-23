@@ -11,14 +11,18 @@ $newCode = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($lockMinutes = elite_ip_lock_minutes($conn)) > 0) {
     $error = elite_lock_message($lockMinutes);
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim((string) ($_POST['username'] ?? ''));
+    $identifier = trim((string) ($_POST['username'] ?? ''));
+    $username = elite_resolve_login($conn, $identifier);
     $password = (string) ($_POST['password'] ?? '');
     $problem = elite_password_problem($password, (string) ($_POST['confirm'] ?? ''));
 
-    if ($username === '' || !elite_recovery_code_matches($conn, $username, (string) ($_POST['code'] ?? ''))) {
-        elite_record_login_failure($conn, $username);
+    if ($username === null || !elite_recovery_code_matches($conn, $username, (string) ($_POST['code'] ?? ''))) {
+        if ($username === null) {
+            password_verify('x', ELITE_PUBLISHED_PASSWORD_HASHES[0]); // same timing as a real check
+        }
+        elite_record_login_failure($conn, $username ?? strtolower($identifier));
         usleep(random_int(200000, 400000));
-        $error = "That username and recovery code don't match.";
+        $error = "That account and recovery code don't match.";
     } elseif ($problem !== null) {
         $error = $problem;
     } else {
@@ -28,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($lockMinutes = elite_ip_lock_minut
     }
 }
 
-elite_auth_page_open('Recover account', 'Use a recovery code', 'Your username, the recovery code you saved, and a new password.');
+elite_auth_page_open('Recover account', 'Use a recovery code', 'Your email or username, the recovery code you saved, and a new password.');
 ?>
         <?php if ($newCode !== null): ?>
             <div class="login-ok"><i class="fa-solid fa-circle-check"></i> Your password has been changed and your old recovery code no longer works.</div>
@@ -39,7 +43,7 @@ elite_auth_page_open('Recover account', 'Use a recovery code', 'Your username, t
             <?php endif; ?>
             <form method="POST" action="recover.php" autocomplete="off">
                 <div class="field">
-                    <label for="username">Username</label>
+                    <label for="username">Email or username</label>
                     <input type="text" id="username" name="username" required value="<?php echo elite_h((string) ($_POST['username'] ?? '')); ?>">
                 </div>
                 <div class="field">

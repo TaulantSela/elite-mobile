@@ -216,3 +216,17 @@ body.admin a { text-decoration: none; color: inherit; }
     .confirm-row { flex-direction: column; align-items: stretch; }
     .confirm-row .abtn, .account-page .admin-form > .abtn { justify-content: center; width: 100%; }
 }
+
+/* Users page and email states */
+.current-email { margin: 0 0 1rem; font-weight: 600; word-break: break-all; }
+.pending-email { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; background: rgba(217,119,6,0.08); border: 1px solid rgba(217,119,6,0.25); color: #92400e; border-radius: var(--a-radius-sm); padding: 0.6rem 0.8rem; font-size: 0.86rem; margin-bottom: 1.1rem; }
+.pending-email form { margin: 0; flex: none; }
+.pending-line { margin-top: 0.3rem; font-size: 0.8rem; color: #b45309; }
+.abtn-sm { padding: 0.35rem 0.75rem; font-size: 0.82rem; }
+.inline-form { display: inline; margin: 0; }
+button.icon-btn { cursor: pointer; font: inherit; }
+.link-btn { background: none; border: 0; padding: 0; margin-left: 0.25rem; color: var(--a-blue); font: inherit; font-weight: 600; cursor: pointer; text-decoration: underline; }
+.unlock-note { display: inline-flex; align-items: center; gap: 0.45rem; margin: 0 0 1.25rem; font-size: 0.86rem; font-weight: 600; color: #15803d; background: rgba(22,163,74,0.08); border-radius: 999px; padding: 0.35rem 0.85rem; }
+.unlock-card { margin-bottom: 1.5rem; max-width: 640px; }
+.users-forms { margin-top: 1.5rem; }
+.account-page .admin-card-head h2 i.fa-lock, .account-page .admin-card-head h2 i.fa-users, .account-page .admin-card-head h2 i.fa-user-plus { color: var(--a-blue); }

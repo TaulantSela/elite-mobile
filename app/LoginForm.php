@@ -11,27 +11,33 @@ if (isset($_SESSION['username'])) {
 }
 
 require_once __DIR__ . '/includes/db_connection.php';
-require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/account.php';
 require_once __DIR__ . '/includes/throttle.php';
 
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
-    $username = trim($_POST['username'] ?? '');
+    $identifier = trim($_POST['username'] ?? '');
     $password = (string) ($_POST['password'] ?? '');
+    // Email or username. Throttling follows the account, so switching between them doesn't reset the count.
+    $username = $identifier === '' ? null : elite_resolve_login($conn, $identifier);
+    $lockKey = $username ?? strtolower($identifier);
 
-    if ($username === '' || $password === '') {
-        $error = 'Please provide both username and password.';
-    } elseif (($lockMinutes = elite_login_lock_minutes($conn, $username)) > 0) {
+    if ($identifier === '' || $password === '') {
+        $error = 'Please enter your email or username and your password.';
+    } elseif (($lockMinutes = elite_login_lock_minutes($conn, $lockKey)) > 0) {
         $error = elite_lock_message($lockMinutes);
-    } elseif (elite_verify_login($conn, $username, $password)) {
+    } elseif ($username !== null && elite_verify_login($conn, $username, $password)) {
         elite_clear_login_failures($conn, $username);
         session_regenerate_id(true);
         $_SESSION['username'] = $username;
         header('Location: dashboard.php');
         exit;
     } else {
-        elite_record_login_failure($conn, $username);
+        if ($username === null) {
+            password_verify($password, ELITE_PUBLISHED_PASSWORD_HASHES[0]); // same timing as a real check
+        }
+        elite_record_login_failure($conn, $lockKey);
         $error = 'Invalid credentials. Please try again.';
     }
 }
@@ -68,8 +74,8 @@ $e = static fn (string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8');
 
         <form method="POST" action="LoginForm.php" autocomplete="off">
             <div class="field">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" required value="<?php echo $e($_POST['username'] ?? ''); ?>" placeholder="admin">
+                <label for="username">Email or username</label>
+                <input type="text" id="username" name="username" required autocomplete="username" value="<?php echo $e($_POST['username'] ?? ''); ?>" placeholder="you@example.com">
             </div>
             <div class="field">
                 <label for="password">Password</label>

@@ -117,7 +117,8 @@ INSERT INTO `services` (`id`, `name`, `slug`, `short_description`, `description`
 CREATE TABLE `users` (
   `username` varchar(50) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `email` varchar(255) DEFAULT NULL,
+  `email` varchar(255) NOT NULL,
+  `email_verified_at` datetime DEFAULT NULL,
   `recovery_code` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -145,6 +146,24 @@ CREATE TABLE `password_resets` (
   `token_hash` char(64) NOT NULL,
   `expires_at` datetime NOT NULL,
   `used_at` datetime DEFAULT NULL,
+  `purpose` varchar(10) NOT NULL DEFAULT 'reset',
+  `created_at` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `token_hash` (`token_hash`),
+  KEY `username_created` (`username`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Table structure for table `email_changes`
+--
+
+CREATE TABLE `email_changes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL,
+  `new_email` varchar(255) NOT NULL,
+  `token_hash` char(64) NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `used_at` datetime DEFAULT NULL,
   `created_at` datetime NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `token_hash` (`token_hash`),
@@ -157,9 +176,9 @@ CREATE TABLE `password_resets` (
 
 -- Passwords are bcrypt hashes (PHP password_hash / PASSWORD_DEFAULT).
 -- No usable passwords ship here: set one with `php scripts/set-admin-password.php <username>`.
-INSERT INTO `users` (`username`, `password`) VALUES
-('elijon', '$2y$12$S9JD72hnoy8YE3buWiuBguHYz8u.gvuqQ0WnOHxFQ6SaEjdrTndQu'),
-('taulant', '$2y$12$Wiw7aSwx13OAT/6JqzteYeaNRuqbLIS.IWq9r0o5oq8upCL.eIK0q');
+INSERT INTO `users` (`username`, `password`, `email`) VALUES
+('elijon', '$2y$12$S9JD72hnoy8YE3buWiuBguHYz8u.gvuqQ0WnOHxFQ6SaEjdrTndQu', 'elijon@example.com'),
+('taulant', '$2y$12$Wiw7aSwx13OAT/6JqzteYeaNRuqbLIS.IWq9r0o5oq8upCL.eIK0q', 'taulant@example.com');
 
 --
 -- Indexes for dumped tables
@@ -189,7 +208,8 @@ ALTER TABLE `services`
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
-  ADD PRIMARY KEY (`username`);
+  ADD PRIMARY KEY (`username`),
+  ADD UNIQUE KEY `email` (`email`);
 
 --
 -- AUTO_INCREMENT for dumped tables

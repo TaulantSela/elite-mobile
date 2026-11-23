@@ -6,7 +6,9 @@ require_once __DIR__ . '/includes/account.php';
 require_once __DIR__ . '/includes/auth_page.php';
 
 $token = (string) ($_GET['token'] ?? $_POST['token'] ?? '');
-$username = elite_reset_token_user($conn, $token);
+$link = elite_reset_token_info($conn, $token);
+$username = $link['username'] ?? null;
+$isInvite = ($link['purpose'] ?? '') === 'invite';
 $error = '';
 $done = false;
 
@@ -18,16 +20,21 @@ if ($username !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = $problem;
     } elseif (elite_consume_reset_token($conn, $token) === $username) {
         elite_set_password($conn, $username, $password);
+        elite_mark_email_verified($conn, $username); // the link went to the account's email
         $done = true;
     } else {
         $username = null; // used or expired in the meantime
     }
 }
 
-elite_auth_page_open('Reset password', 'Choose a new password', 'At least ' . ELITE_MIN_PASSWORD_LENGTH . ' characters.');
+elite_auth_page_open(
+    $isInvite ? 'Set up your account' : 'Reset password',
+    $isInvite ? 'Choose your password' : 'Choose a new password',
+    ($isInvite ? 'Finish setting up your admin account. ' : '') . 'At least ' . ELITE_MIN_PASSWORD_LENGTH . ' characters.'
+);
 ?>
         <?php if ($done): ?>
-            <div class="login-ok"><i class="fa-solid fa-circle-check"></i> Your password has been changed. Sign in with the new one.</div>
+            <div class="login-ok"><i class="fa-solid fa-circle-check"></i> <?php echo $isInvite ? 'Your account is ready.' : 'Your password has been changed.'; ?> Sign in with your email or username.</div>
         <?php elseif ($username === null): ?>
             <div class="login-error"><i class="fa-solid fa-circle-exclamation"></i>
                 This reset link is invalid, already used or expired.
