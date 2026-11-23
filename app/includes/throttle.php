@@ -7,8 +7,7 @@ declare(strict_types=1);
  *
  * - 5 failures for one username within 15 minutes lock that username for 15
  *   minutes, even with the right password.
- * - 20 failures from one IP within 15 minutes lock that IP out of sign-in and
- *   recovery-code attempts.
+ * - 20 failures from one IP within 15 minutes lock that IP out of sign-in.
  *
  * A successful sign-in or password reset clears the username's failures, so
  * the owner can always get back in through "Forgot password?".
@@ -55,12 +54,6 @@ function elite_login_lock_minutes(mysqli $conn, string $username): int
         elite_lock_minutes_left($conn, 'username', $username, ELITE_LOCK_MAX_PER_USER),
         elite_lock_minutes_left($conn, 'ip_hash', elite_client_ip_hash(), ELITE_LOCK_MAX_PER_IP)
     );
-}
-
-/** Minutes until this IP may try again (0 = allowed now); used where the username can't be trusted. */
-function elite_ip_lock_minutes(mysqli $conn): int
-{
-    return elite_lock_minutes_left($conn, 'ip_hash', elite_client_ip_hash(), ELITE_LOCK_MAX_PER_IP);
 }
 
 function elite_record_login_failure(mysqli $conn, string $username): void

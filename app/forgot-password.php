@@ -33,5 +33,5 @@ elite_auth_page_open('Forgot password', 'Forgot your password?', 'Enter your ema
                 <button type="submit"><i class="fa-solid fa-paper-plane"></i> Email me a reset link</button>
             </form>
         <?php endif; ?>
-        <p class="login-alt">No access to that email? <a href="recover.php">Use a recovery code</a></p>
+        <p class="login-alt">No access to that email anymore? Another admin can change it on the Users page.</p>
 <?php elite_auth_page_close(); ?>

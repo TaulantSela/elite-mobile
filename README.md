@@ -41,16 +41,15 @@ the whole app end to end in an afternoon.
 - **Emails**: every admin account has its own email, used to sign in (as is the username) and
   for reset links. A new email takes effect only after the link sent to it is clicked (a
   button press, so mail scanners can't confirm it), and the old address gets a heads-up.
-- **Account**: change your password, change your email, and create a recovery code. Each
-  change asks for your current password.
+- **Account**: change your password and your email. Each change asks for your current password.
 - **Forgot password?** on the sign-in page emails a reset link to the account's email (single
-  use, expires in 30 minutes, at most three an hour), or resets with the recovery code, which
-  is then replaced. Both accept an email or a username, and neither reveals whether an account
-  exists.
+  use, expires in 30 minutes, at most three an hour). It accepts an email or a username and
+  never reveals whether an account exists. Lost access to that email? Another admin can change
+  it on the Users page, or reset the password with `scripts/set-admin-password.php`.
 - **Sign-in lockout**: 5 failed attempts for a username within 15 minutes lock it for 15 minutes,
-  and 20 failures from one IP lock that IP out of sign-in and recovery codes. A password reset
+  and 20 failures from one IP lock that IP out of sign-in. A password reset
   clears the lock. Only a hash of the IP is stored.
-- **Passwords** are stored as bcrypt hashes, recovery codes too, and reset tokens as SHA-256.
+- **Passwords** are stored as bcrypt hashes, and reset, invite and confirmation tokens as SHA-256.
   Any plaintext password left in the database is accepted once and re-hashed on that login, and
   the session id is regenerated on sign-in.
 
@@ -128,8 +127,7 @@ or MariaDB 10+.
    ```
 
    Then sign in at <http://localhost:8000/app/LoginForm.php> with the email or username. After
-   that, invite other admins under **Users**, and change your email or create a recovery code
-   under **Account**.
+   that, invite other admins under **Users**, and change your email under **Account**.
 
 > [!NOTE]
 > The pages are written for the Vercel route table: PHP pages at the site root, assets from the

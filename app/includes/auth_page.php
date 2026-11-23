@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-/** Shared shell for the signed-out pages (forgot / reset / recover), styled like the sign-in card. */
+/** Shared shell for the signed-out pages (forgot password, reset, confirm email), styled like the sign-in card. */
 
 require_once __DIR__ . '/url_helpers.php';
 
@@ -50,18 +50,5 @@ function elite_auth_page_close(): void
     </div>
 </body>
 </html>
-    <?php
-}
-
-/** A one-time recovery code, shown with a warning to save it. */
-function elite_render_recovery_code(string $code): void
-{
-    $h = 'elite_h';
-    ?>
-    <div class="recovery-code-box">
-        <span>Your recovery code</span>
-        <code><?php echo $h($code); ?></code>
-        <small>Save it in your password manager now. It is shown only once, and using it replaces it with a new one.</small>
-    </div>
     <?php
 }

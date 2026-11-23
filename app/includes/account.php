@@ -2,15 +2,15 @@
 declare(strict_types=1);
 
 /**
- * Admin accounts: emails, password rules, recovery codes, emailed reset and
- * invite links, and verified email changes.
+ * Admin accounts: emails, password rules, emailed reset and invite links, and
+ * verified email changes.
  *
  * Every admin account has a unique email. It is used to sign in (as is the
  * username) and for reset links, and it only changes once the new address is
  * confirmed through a link sent to it.
  *
- * Secrets are stored only as hashes: passwords and recovery codes with
- * password_hash(), link tokens as SHA-256 (long random values, so a fast hash is
+ * Secrets are stored only as hashes: passwords with password_hash(), link
+ * tokens as SHA-256 (long random values, so a fast hash is
  * enough and lets us look them up). Reset links last 30 minutes, invites 72
  * hours and email confirmations 24 hours. Each link works once, and at most
  * three of a kind can be sent per account per hour.
@@ -145,11 +145,11 @@ function elite_email_taken(mysqli $conn, string $email, string $exceptUsername =
 }
 
 /**
- * @return array{username:string, email:string, email_verified:bool, has_recovery_code:bool, pending_email:?string}|null
+ * @return array{username:string, email:string, email_verified:bool, pending_email:?string}|null
  */
 function elite_find_user(mysqli $conn, string $username): ?array
 {
-    $row = elite_db_row($conn, 'SELECT username, email, email_verified_at, recovery_code FROM users WHERE username = ? LIMIT 1', 's', $username);
+    $row = elite_db_row($conn, 'SELECT username, email, email_verified_at FROM users WHERE username = ? LIMIT 1', 's', $username);
 
     if ($row === null) {
         return null;
@@ -159,7 +159,6 @@ function elite_find_user(mysqli $conn, string $username): ?array
         'username' => (string) $row['username'],
         'email' => (string) $row['email'],
         'email_verified' => $row['email_verified_at'] !== null,
-        'has_recovery_code' => (string) ($row['recovery_code'] ?? '') !== '',
         'pending_email' => elite_pending_email($conn, (string) $row['username']),
     ];
 }
@@ -249,45 +248,6 @@ function elite_delete_admin(mysqli $conn, string $username): void
     foreach (['password_resets', 'email_changes', 'login_attempts', 'users'] as $table) {
         elite_db_exec($conn, "DELETE FROM {$table} WHERE username = ?", 's', $username);
     }
-}
-
-/* ---------------------------------------------------------------------
- * Recovery codes: 20 random characters (100 bits), shown once as
- * XXXXX-XXXXX-XXXXX-XXXXX. Using one to reset replaces it with a new one.
- * ------------------------------------------------------------------- */
-
-function elite_normalize_recovery_code(string $code): string
-{
-    return strtoupper((string) preg_replace('/[^A-Za-z0-9]/', '', $code));
-}
-
-/** Create a new recovery code for a user, replacing any old one, and return it. */
-function elite_new_recovery_code(mysqli $conn, string $username): string
-{
-    $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O or 1/I
-    $raw = '';
-    for ($i = 0; $i < 20; $i++) {
-        $raw .= $alphabet[random_int(0, strlen($alphabet) - 1)];
-    }
-
-    elite_db_exec($conn, 'UPDATE users SET recovery_code = ? WHERE username = ?', 'ss', password_hash($raw, PASSWORD_DEFAULT), $username);
-
-    return implode('-', str_split($raw, 5));
-}
-
-function elite_recovery_code_matches(mysqli $conn, string $username, string $code): bool
-{
-    $row = elite_db_row($conn, 'SELECT recovery_code FROM users WHERE username = ? LIMIT 1', 's', $username);
-    $stored = (string) ($row['recovery_code'] ?? '');
-
-    if ($stored === '') {
-        // Spend the same time as a real check so timing doesn't reveal accounts without a code.
-        password_verify('x', ELITE_PUBLISHED_PASSWORD_HASHES[0]);
-
-        return false;
-    }
-
-    return password_verify(elite_normalize_recovery_code($code), $stored);
 }
 
 /* ---------------------------------------------------------------------
