@@ -34,11 +34,19 @@ the whole app end to end in an afternoon.
   product form, and the latest products.
 - **Products**: add (with image upload), edit and delete.
 - **Categories** (brands): add, edit and delete.
-- **Account**: change your password, set a recovery email, and create a recovery code. Each
+- **Users**: list, add and remove admins, and change their emails. A new admin gets an email
+  invite to choose their own password (valid 72 hours). Changes need your password, confirmed
+  once and then unlocked for 10 minutes. You can't remove yourself, and a removed admin is
+  signed out on their next request.
+- **Emails**: every admin account has its own email, used to sign in (as is the username) and
+  for reset links. A new email takes effect only after the link sent to it is clicked (a
+  button press, so mail scanners can't confirm it), and the old address gets a heads-up.
+- **Account**: change your password, change your email, and create a recovery code. Each
   change asks for your current password.
-- **Forgot password?** on the sign-in page emails a reset link to the recovery email (single
+- **Forgot password?** on the sign-in page emails a reset link to the account's email (single
   use, expires in 30 minutes, at most three an hour), or resets with the recovery code, which
-  is then replaced. Neither path reveals whether an account exists.
+  is then replaced. Both accept an email or a username, and neither reveals whether an account
+  exists.
 - **Sign-in lockout**: 5 failed attempts for a username within 15 minutes lock it for 15 minutes,
   and 20 failures from one IP lock that IP out of sign-in and recovery codes. A password reset
   clears the lock. Only a hash of the IP is stored.
@@ -58,8 +66,9 @@ the whole app end to end in an afternoon.
    uses Bootstrap 3 and jQuery plus the custom stylesheet `styles/store.css`; the admin panel has
    its own layout and `styles/admin.css`.
 3. **Database.** `app/includes/database.php` opens one shared `mysqli` connection from the `DB_*`
-   environment variables, with optional TLS for managed MySQL hosts. The schema has six tables:
-   `category`, `product`, `services`, `users`, `password_resets` and `login_attempts`. Changes to an existing
+   environment variables, with optional TLS for managed MySQL hosts. The schema has seven tables:
+   `category`, `product`, `services`, `users`, `password_resets` (reset and invite links),
+   `email_changes` and `login_attempts`. Changes to an existing
    database live in `migrations/`; `phpproject.sql` already includes them.
 4. **Images.** Seed images are filenames served from `img/`. When `BLOB_READ_WRITE_TOKEN` is set,
    uploaded product images go to **Vercel Blob** through its HTTP API (`app/includes/blob.php`)
@@ -114,11 +123,13 @@ or MariaDB 10+.
    `DB_*` variables, so check which database they point at):
 
    ```bash
-   php scripts/set-admin-password.php taulant
+   php scripts/set-admin-password.php taulant                     # a seeded account
+   php scripts/set-admin-password.php ana ana@example.com         # creates a new one
    ```
 
-   Then sign in at <http://localhost:8000/app/LoginForm.php>. After that you can change it, and
-   set up a recovery email and code, under **Account**.
+   Then sign in at <http://localhost:8000/app/LoginForm.php> with the email or username. After
+   that, invite other admins under **Users**, and change your email or create a recovery code
+   under **Account**.
 
 > [!NOTE]
 > The pages are written for the Vercel route table: PHP pages at the site root, assets from the
