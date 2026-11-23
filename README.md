@@ -34,8 +34,14 @@ the whole app end to end in an afternoon.
   product form, and the latest products.
 - **Products**: add (with image upload), edit and delete.
 - **Categories** (brands): add, edit and delete.
-- **Passwords** are stored as bcrypt hashes. Any plaintext password left in the database is
-  accepted once and re-hashed on that login, and the session id is regenerated on sign-in.
+- **Account**: change your password, set a recovery email, and create a recovery code. Each
+  change asks for your current password.
+- **Forgot password?** on the sign-in page emails a reset link to the recovery email (single
+  use, expires in 30 minutes, at most three an hour), or resets with the recovery code, which
+  is then replaced. Neither path reveals whether an account exists.
+- **Passwords** are stored as bcrypt hashes, recovery codes too, and reset tokens as SHA-256.
+  Any plaintext password left in the database is accepted once and re-hashed on that login, and
+  the session id is regenerated on sign-in.
 
 ## How it works
 
@@ -49,8 +55,9 @@ the whole app end to end in an afternoon.
    uses Bootstrap 3 and jQuery plus the custom stylesheet `styles/store.css`; the admin panel has
    its own layout and `styles/admin.css`.
 3. **Database.** `app/includes/database.php` opens one shared `mysqli` connection from the `DB_*`
-   environment variables, with optional TLS for managed MySQL hosts. The schema has four tables:
-   `category`, `product`, `services` and `users`.
+   environment variables, with optional TLS for managed MySQL hosts. The schema has five tables:
+   `category`, `product`, `services`, `users` and `password_resets`. Changes to an existing
+   database live in `migrations/`; `phpproject.sql` already includes them.
 4. **Images.** Seed images are filenames served from `img/`. When `BLOB_READ_WRITE_TOKEN` is set,
    uploaded product images go to **Vercel Blob** through its HTTP API (`app/includes/blob.php`)
    and the public URL is saved on the product, because Vercel's filesystem is read-only. Without
@@ -80,6 +87,9 @@ or MariaDB 10+.
    | `DB_CONNECT_TIMEOUT`, `DB_READ_TIMEOUT` | Seconds (defaults: 10 and 30) |
    | `BLOB_READ_WRITE_TOKEN` | Optional: store uploaded images in Vercel Blob |
    | `PAYPAL_PDT_TOKEN` | Optional: PayPal sandbox PDT identity token, needed to mark products as paid |
+   | `RESEND_API_KEY` | Optional: sends reset emails through [Resend](https://resend.com). Without it, locally the reset link is written to the PHP error log |
+   | `MAIL_FROM` | Optional: sender address, default `Elite Mobile <onboarding@resend.dev>` |
+   | `APP_URL` | Optional: base URL for links in emails; on Vercel it defaults to the production domain |
 
 3. Start PHP's built-in server **from the repo root** and open
    <http://localhost:8000/app/home.php>:
@@ -95,7 +105,8 @@ or MariaDB 10+.
    php scripts/set-admin-password.php taulant
    ```
 
-   Then sign in at <http://localhost:8000/app/LoginForm.php>.
+   Then sign in at <http://localhost:8000/app/LoginForm.php>. After that you can change it, and
+   set up a recovery email and code, under **Account**.
 
 > [!NOTE]
 > The pages are written for the Vercel route table: PHP pages at the site root, assets from the
@@ -107,8 +118,10 @@ or MariaDB 10+.
 
 The repo deploys to Vercel as-is: `vercel.json` pins the `vercel-php@0.9.0` runtime for
 `api/**/*.php` and defines the routes. Set the `DB_*` variables (and `DB_SSL=1` for a managed
-MySQL) plus `BLOB_READ_WRITE_TOKEN` (and optionally `PAYPAL_PDT_TOKEN`) in the Vercel project.
-Set the admin passwords with `scripts/set-admin-password.php` against the production database.
+MySQL) plus `BLOB_READ_WRITE_TOKEN` (and optionally `PAYPAL_PDT_TOKEN`, `RESEND_API_KEY`,
+`MAIL_FROM`) in the Vercel project. Apply any new file in `migrations/` to the production database
+before deploying the code that needs it, and set the first admin password with
+`scripts/set-admin-password.php`.
 
 ## Known limitations
 
