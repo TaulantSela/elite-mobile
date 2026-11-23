@@ -1,14 +1,16 @@
 -- Every admin account gets a required, unique email that is verified before
 -- it changes; reset links can also be invites.
 -- Needs every existing account to have an email already (production does).
+-- One change per column per ALTER: production runs on TiDB, which rejects
+-- several changes to the same column in one statement.
 ALTER TABLE `users`
   ADD COLUMN `email_verified_at` datetime DEFAULT NULL;
 
-UPDATE `users` SET `email_verified_at` = UTC_TIMESTAMP() WHERE `email` IS NOT NULL AND `email` <> '';
+UPDATE `users` SET `email_verified_at` = UTC_TIMESTAMP() WHERE `email_verified_at` IS NULL AND `email` IS NOT NULL AND `email` <> '';
 
-ALTER TABLE `users`
-  MODIFY `email` varchar(255) NOT NULL,
-  ADD UNIQUE KEY `email` (`email`);
+ALTER TABLE `users` MODIFY `email` varchar(255) NOT NULL;
+
+ALTER TABLE `users` ADD UNIQUE KEY `email` (`email`);
 
 ALTER TABLE `password_resets`
   ADD COLUMN `purpose` varchar(10) NOT NULL DEFAULT 'reset';
