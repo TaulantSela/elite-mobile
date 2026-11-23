@@ -13,6 +13,7 @@ $adminNav = [
     ['key' => 'products',   'label' => 'Products',    'icon' => 'fa-mobile-screen', 'href' => elite_asset('admin/admin_products.php')],
     ['key' => 'categories', 'label' => 'Categories',  'icon' => 'fa-layer-group', 'href' => elite_asset('admin/admin_categories.php')],
     ['key' => 'add',        'label' => 'Add product', 'icon' => 'fa-circle-plus', 'href' => elite_asset('admin/admin_insertproduct.php')],
+    ['key' => 'users',      'label' => 'Users',       'icon' => 'fa-users',       'href' => elite_asset('admin/admin_users.php')],
     ['key' => 'account',    'label' => 'Account',     'icon' => 'fa-user-shield', 'href' => elite_asset('admin/admin_account.php')],
 ];
 

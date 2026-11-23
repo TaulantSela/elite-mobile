@@ -11,7 +11,11 @@ $errors = [];
 $success = '';
 $newCode = null;
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'cancel_email') {
+    // Cancelling a pending change only keeps the current email, so it needs no password.
+    elite_cancel_email_changes($conn, $username);
+    $success = 'Email change cancelled. Your email stays the same.';
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = (string) ($_POST['action'] ?? '');
     $current = (string) ($_POST['current'] ?? '');
 
@@ -34,13 +38,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $success = 'Your password has been changed.';
         }
     } elseif ($action === 'email') {
-        $email = trim((string) ($_POST['email'] ?? ''));
+        $newEmail = elite_normalize_email((string) ($_POST['email'] ?? ''));
+        $problem = elite_request_email_change($conn, $username, $newEmail);
 
-        if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
-            $errors[] = 'Enter a valid email address, or leave it empty to remove it.';
+        if ($problem !== null) {
+            $errors[] = $problem;
         } else {
-            elite_set_email($conn, $username, $email === '' ? null : $email);
-            $success = $email === '' ? 'Recovery email removed.' : 'Recovery email saved.';
+            $success = "We sent a confirmation link to {$newEmail}. Your email changes when you click it.";
         }
     } elseif ($action === 'code') {
         $newCode = elite_new_recovery_code($conn, $username);
@@ -48,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$user = elite_find_user($conn, $username) ?? ['email' => null, 'has_recovery_code' => false];
+$user = elite_find_user($conn, $username) ?? ['email' => '', 'email_verified' => false, 'has_recovery_code' => false, 'pending_email' => null];
 $e = 'elite_h';
 $adminTitle = 'Account';
 $adminActive = 'account';
@@ -100,29 +104,39 @@ require __DIR__ . '/../includes/admin/layout_top.php';
             <div class="admin-card">
                 <div class="admin-card-head">
                     <div>
-                        <h2><i class="fa-solid fa-envelope"></i> Recovery email</h2>
-                        <p>Where "Forgot password?" sends reset links.</p>
+                        <h2><i class="fa-solid fa-envelope"></i> Email</h2>
+                        <p>For signing in and for password reset links.</p>
                     </div>
-                    <?php if ($user['email'] !== null): ?>
-                        <span class="status-pill ok"><i class="fa-solid fa-circle-check"></i> On</span>
+                    <?php if ($user['email_verified']): ?>
+                        <span class="status-pill ok"><i class="fa-solid fa-circle-check"></i> Verified</span>
                     <?php else: ?>
-                        <span class="status-pill off"><i class="fa-solid fa-circle-minus"></i> Off</span>
+                        <span class="status-pill off"><i class="fa-solid fa-circle-minus"></i> Not verified</span>
                     <?php endif; ?>
                 </div>
                 <div class="admin-card-body">
+                    <p class="current-email"><?php echo $e($user['email']); ?></p>
+                    <?php if ($user['pending_email'] !== null): ?>
+                        <div class="pending-email">
+                            <span><i class="fa-solid fa-hourglass-half"></i> Waiting for you to confirm <strong><?php echo $e($user['pending_email']); ?></strong>. The link we sent there expires in 24 hours.</span>
+                            <form action="admin_account.php" method="post">
+                                <input type="hidden" name="action" value="cancel_email">
+                                <button type="submit" class="abtn abtn-ghost abtn-sm">Cancel</button>
+                            </form>
+                        </div>
+                    <?php endif; ?>
                     <form class="admin-form" action="admin_account.php" method="post" autocomplete="off">
                         <input type="hidden" name="action" value="email">
                         <div class="field">
-                            <label for="em-email">Email</label>
-                            <input type="email" id="em-email" name="email" value="<?php echo $e((string) $user['email']); ?>" placeholder="you@example.com">
-                            <div class="hint">Leave empty to turn emailed resets off.</div>
+                            <label for="em-email">New email</label>
+                            <input type="email" id="em-email" name="email" required placeholder="you@example.com">
+                            <div class="hint">It takes effect after you click the link we send to it.</div>
                         </div>
                         <div class="confirm-row">
                             <div class="field">
                                 <label for="em-current">Current password</label>
                                 <input type="password" id="em-current" name="current" required autocomplete="current-password">
                             </div>
-                            <button type="submit" class="abtn abtn-grad"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+                            <button type="submit" class="abtn abtn-grad"><i class="fa-solid fa-paper-plane"></i> Send link</button>
                         </div>
                     </form>
                 </div>

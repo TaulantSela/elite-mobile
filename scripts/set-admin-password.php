@@ -2,13 +2,15 @@
 declare(strict_types=1);
 
 /**
- * Set or reset an admin password (creates the user if it doesn't exist).
+ * Set or reset an admin password, or create an admin account.
  *
- *   php scripts/set-admin-password.php <username>
+ *   php scripts/set-admin-password.php <username> [<email>]
  *
- * Uses the same DB_* environment variables as the app, so point it at the
- * database you mean to change. Prompts for the password without echoing it and
- * stores only a bcrypt hash.
+ * An existing account gets the new password, and <email> too if given. A new
+ * account needs <email>. Email set here counts as verified (you are at the
+ * database). Uses the same DB_* environment variables as the app, so point it
+ * at the database you mean to change. Prompts for the password without echoing
+ * it and stores only a bcrypt hash.
  */
 
 if (PHP_SAPI !== 'cli') {
@@ -20,10 +22,38 @@ require_once __DIR__ . '/../app/includes/database.php';
 require_once __DIR__ . '/../app/includes/account.php';
 
 $username = trim($argv[1] ?? '');
+$email = elite_normalize_email($argv[2] ?? '');
 
 if ($username === '') {
-    fwrite(STDERR, "Usage: php scripts/set-admin-password.php <username>\n");
+    fwrite(STDERR, "Usage: php scripts/set-admin-password.php <username> [<email>]\n");
     exit(1);
+}
+
+$connection = getDbConnection();
+$existing = elite_find_user($connection, $username);
+
+if ($existing === null) {
+    if (($problem = elite_username_problem($username)) !== null) {
+        fwrite(STDERR, $problem . "\n");
+        exit(1);
+    }
+
+    if ($email === '') {
+        fwrite(STDERR, "{$username} doesn't exist yet: give an email to create it.\n");
+        exit(1);
+    }
+}
+
+if ($email !== '') {
+    if (($problem = elite_email_problem($email)) !== null) {
+        fwrite(STDERR, $problem . "\n");
+        exit(1);
+    }
+
+    if (elite_email_taken($connection, $email, $username)) {
+        fwrite(STDERR, "That email is already used by another account.\n");
+        exit(1);
+    }
 }
 
 $readHidden = static function (string $prompt): string {
@@ -61,15 +91,27 @@ if ($readHidden('Repeat it: ') !== $password) {
     exit(1);
 }
 
-$connection = getDbConnection();
 $hash = password_hash($password, PASSWORD_DEFAULT);
-$statement = mysqli_prepare(
-    $connection,
-    'INSERT INTO users (username, password) VALUES (?, ?) ON DUPLICATE KEY UPDATE password = VALUES(password)'
-);
-mysqli_stmt_bind_param($statement, 'ss', $username, $hash);
-mysqli_stmt_execute($statement);
-mysqli_stmt_close($statement);
-elite_clear_login_failures($connection, $username);
 
-fwrite(STDOUT, "Password set for {$username} on " . DB_HOST . '/' . DB_NAME . ".\n");
+if ($existing === null) {
+    elite_db_exec(
+        $connection,
+        'INSERT INTO users (username, password, email, email_verified_at) VALUES (?, ?, ?, UTC_TIMESTAMP())',
+        'sss',
+        $username,
+        $hash,
+        $email
+    );
+} else {
+    elite_db_exec($connection, 'UPDATE users SET password = ? WHERE username = ?', 'ss', $hash, $username);
+
+    if ($email !== '') {
+        elite_db_exec($connection, 'UPDATE users SET email = ?, email_verified_at = UTC_TIMESTAMP() WHERE username = ?', 'ss', $email, $username);
+        elite_cancel_email_changes($connection, $username);
+    }
+}
+
+elite_clear_login_failures($connection, $username);
+elite_cancel_reset_links($connection, $username);
+
+fwrite(STDOUT, ($existing === null ? "Created {$username}" : "Password set for {$username}") . ' on ' . DB_HOST . '/' . DB_NAME . ".\n");
