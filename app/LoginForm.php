@@ -12,6 +12,7 @@ if (isset($_SESSION['username'])) {
 
 require_once __DIR__ . '/includes/db_connection.php';
 require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/throttle.php';
 
 $error = '';
 
@@ -21,12 +22,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
 
     if ($username === '' || $password === '') {
         $error = 'Please provide both username and password.';
+    } elseif (($lockMinutes = elite_login_lock_minutes($conn, $username)) > 0) {
+        $error = elite_lock_message($lockMinutes);
     } elseif (elite_verify_login($conn, $username, $password)) {
+        elite_clear_login_failures($conn, $username);
         session_regenerate_id(true);
         $_SESSION['username'] = $username;
         header('Location: dashboard.php');
         exit;
     } else {
+        elite_record_login_failure($conn, $username);
         $error = 'Invalid credentials. Please try again.';
     }
 }

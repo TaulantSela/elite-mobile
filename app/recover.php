@@ -8,12 +8,15 @@ require_once __DIR__ . '/includes/auth_page.php';
 $error = '';
 $newCode = null;
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($lockMinutes = elite_ip_lock_minutes($conn)) > 0) {
+    $error = elite_lock_message($lockMinutes);
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim((string) ($_POST['username'] ?? ''));
     $password = (string) ($_POST['password'] ?? '');
     $problem = elite_password_problem($password, (string) ($_POST['confirm'] ?? ''));
 
     if ($username === '' || !elite_recovery_code_matches($conn, $username, (string) ($_POST['code'] ?? ''))) {
+        elite_record_login_failure($conn, $username);
         usleep(random_int(200000, 400000));
         $error = "That username and recovery code don't match.";
     } elseif ($problem !== null) {

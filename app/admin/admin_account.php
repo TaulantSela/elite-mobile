@@ -16,7 +16,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $current = (string) ($_POST['current'] ?? '');
 
     // Every change here needs the current password, so a hijacked session alone can't take over the account.
-    if (!elite_verify_login($conn, $username, $current)) {
+    if (($lockMinutes = elite_login_lock_minutes($conn, $username)) > 0) {
+        $errors[] = elite_lock_message($lockMinutes);
+    } elseif (!elite_verify_login($conn, $username, $current)) {
+        elite_record_login_failure($conn, $username);
         $errors[] = 'Your current password is not correct.';
     } elseif ($action === 'password') {
         $password = (string) ($_POST['password'] ?? '');
