@@ -45,6 +45,40 @@ if (!function_exists('elite_url')) {
     }
 }
 
+if (!function_exists('elite_absolute_url')) {
+    /** Absolute URL of a page in this app, built from the current request. */
+    function elite_absolute_url(string $path): string
+    {
+        $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https';
+        $host = (string) ($_SERVER['HTTP_HOST'] ?? 'localhost');
+
+        return ($https ? 'https' : 'http') . '://' . $host . '/' . ltrim(elite_url($path), '/');
+    }
+}
+
+if (!function_exists('elite_public_url')) {
+    /**
+     * Absolute URL for links that leave the site (emails). Never built from the
+     * request's Host header in production, so a forged Host can't point a reset
+     * link at another domain: APP_URL wins, then Vercel's production domain.
+     */
+    function elite_public_url(string $path): string
+    {
+        $base = (string) (getenv('APP_URL') ?: '');
+
+        if ($base === '' && getenv('VERCEL_PROJECT_PRODUCTION_URL')) {
+            $base = 'https://' . getenv('VERCEL_PROJECT_PRODUCTION_URL');
+        }
+
+        if ($base === '') {
+            return elite_absolute_url($path);
+        }
+
+        return rtrim($base, '/') . '/' . ltrim($path, '/');
+    }
+}
+
 if (!function_exists('elite_asset')) {
     function elite_asset(string $path): string
     {

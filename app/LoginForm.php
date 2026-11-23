@@ -72,6 +72,7 @@ $e = static fn (string $v): string => htmlspecialchars($v, ENT_QUOTES, 'UTF-8');
             </div>
             <button type="submit" name="login"><i class="fa-solid fa-right-to-bracket"></i> Sign in</button>
         </form>
+        <p class="login-alt"><a href="forgot-password.php">Forgot password?</a></p>
         <a class="back-home" href="home.php"><i class="fa-solid fa-arrow-left"></i> Back to store</a>
     </div>
 </body>

@@ -26,16 +26,6 @@ function elite_paypal_amount(float $priceMkd): string
     return number_format($priceMkd * 0.019, 2, '.', '');
 }
 
-/** Absolute URL of a page in this app, for PayPal's return and cancel URLs. */
-function elite_absolute_url(string $path): string
-{
-    $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-        || strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https';
-    $host = (string) ($_SERVER['HTTP_HOST'] ?? 'localhost');
-
-    return ($https ? 'https' : 'http') . '://' . $host . '/' . ltrim(elite_url($path), '/');
-}
-
 /**
  * Ask PayPal whether transaction $transactionId really paid for $productId.
  * Returns false on any doubt: no token, network error, or a mismatch.
