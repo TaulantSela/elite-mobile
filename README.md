@@ -55,15 +55,15 @@ the whole app end to end in an afternoon.
 
 ## How it works
 
-1. **Routing.** On Vercel, `vercel.json` sends asset folders (`img/`, `styles/`, `css/`, `js/`,
-   `vendor/`, `bootstrap-3.3.7-dist/`) straight to static files and every other path to
+1. **Routing.** On Vercel, `vercel.json` sends asset folders (`img/`, `styles/`, `screenshot/`)
+   straight to static files and every other path to
    `api/index.php`. That front controller maps `/products.php` to `app/products.php` (`/` goes to
    `home.php`), refuses anything outside `app/` or anything that isn't a `.php` file, and then
    runs the page.
 2. **Pages** in `app/` are server-rendered PHP that pull in shared partials from `app/includes/`
    (header, footer, head) and query helpers from `app/includes/functions.php`. The storefront
-   uses Bootstrap 3 and jQuery plus the custom stylesheet `styles/store.css`; the admin panel has
-   its own layout and `styles/admin.css`.
+   uses Bootstrap 3's CSS (3.4.1, no Bootstrap or jQuery JavaScript) plus the custom stylesheet
+   `styles/store.css`; the admin panel has its own layout and `styles/admin.css`.
 3. **Database.** `app/includes/database.php` opens one shared `mysqli` connection from the `DB_*`
    environment variables, with optional TLS for managed MySQL hosts. The schema has seven tables:
    `category`, `product`, `services`, `users`, `password_resets` (reset and invite links),
